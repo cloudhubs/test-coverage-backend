@@ -1,0 +1,31 @@
+variables:
+  DOCKER_DRIVER: overlay
+
+stages:          # List of stages for jobs, and their order of execution
+  - build
+  - deploy
+
+maven-build-job:       # This job runs in the build stage, which runs first.
+  image: maven:latest
+  stage: build
+  script:
+    - echo "Compiling the code..."
+    - mvn package
+  artifacts:
+     paths:
+       - target/*.jar 
+
+
+deploy-job:      # This job runs in the deploy stage.
+  image: docker:latest
+  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
+  services:
+        - name: docker:dind
+  script:
+    - echo "Deploying application..."
+    - docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
+    - echo "Login to gitlab..."
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - echo "Pushing to gitlab..."
+    - docker push registry.gitlab.com/myusername/myproject
+    - echo "Application successfully deployed."
