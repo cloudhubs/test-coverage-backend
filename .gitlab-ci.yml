@@ -29,3 +29,4 @@ deploy-job:      # This job runs in the deploy stage.
     - echo "Pushing to gitlab..."
     - docker push registry.gitlab.com/myusername/myproject
     - echo "Application successfully deployed."
+    - echo "Donny is him"
