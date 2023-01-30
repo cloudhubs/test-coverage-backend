@@ -1,4 +1,5 @@
-image: node:latest
+variables:
+  DOCKER_DRIVER: overlay
 
 before_script:
   - apt-get update -y && apt-get install sshpass -y
@@ -12,21 +13,28 @@ cache:
     - node_modules/
 
 build-job:
+  image: maven:latest
   stage: build
   script:
-    - npm install
-    - npm run build
+    - echo "Compiling the code..."
+    - mvn package
   artifacts:
     paths:
-      - build/
+      - target/*.jar
 
 deploy-job:
+  image: docker:latest
   stage: deploy
+  services:
+        - name: docker:dind
   script:
     - eval "$(ssh-agent -s)"
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
     - scp -r build/* donovan@192.168.3.211:~/testCoverageBackend
+
+    - echo "Deploying application..."
+    - docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
   only:
     - main
