@@ -28,13 +28,12 @@ deploy-job:
   services:
         - name: docker:dind
   script:
+    - echo "Deploying application..."
+    - docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
     - eval "$(ssh-agent -s)"
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
     - scp -r build/* donovan@192.168.3.211:~/testCoverageBackend
-
-    - echo "Deploying application..."
-    - docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
   only:
     - main
