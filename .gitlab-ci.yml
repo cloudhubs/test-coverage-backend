@@ -1,4 +1,4 @@
-image: ubuntu:latest
+image: node:latest
 
 before_script:
   - apt-get update -y && apt-get install sshpass -y
