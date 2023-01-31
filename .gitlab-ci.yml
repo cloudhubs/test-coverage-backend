@@ -1,5 +1,6 @@
 variables:
   DOCKER_DRIVER: overlay
+  DOCKER_HOST: tcp://thedockerhost:2375/
 
 before_script:
   - apt-get update -y && apt-get install sshpass -y
