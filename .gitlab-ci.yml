@@ -1,9 +1,5 @@
-variables:
-  DOCKER_DRIVER: overlay
-  DOCKER_HOST: tcp://thedockerhost:2375/
 
 before_script:
-  - docker ps
   - apt-get update -y && apt-get install sshpass -y
 
 stages:
@@ -19,7 +15,14 @@ build image:
   stage: build
   services:
     - docker:dind
+  
+  variables:
+    DOCKER_DRIVER: overlay
+    DOCKER_HOST: tcp://thedockerhost:2375/
+
   script:
+    - docker info
+    - docker ps
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
