@@ -2,6 +2,7 @@ image: ubuntu:latest
 
 before_script:
   - apt-get update -y && apt-get install sshpass -y
+  - apt-get update && apt-get install -y docker-ce-cli
   - docker images
 
 stages:
