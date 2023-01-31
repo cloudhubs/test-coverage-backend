@@ -1,5 +1,8 @@
+
+
 before_script:
   - apt-get update -y && apt-get install sshpass -y
+  - docker images
 
 stages:
   - build
