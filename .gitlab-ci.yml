@@ -3,6 +3,7 @@ variables:
   DOCKER_HOST: tcp://thedockerhost:2375/
 
 before_script:
+  - docker ps
   - apt-get update -y && apt-get install sshpass -y
 
 stages:
