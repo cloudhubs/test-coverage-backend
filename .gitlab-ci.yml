@@ -2,6 +2,7 @@ image: node:latest
 
 before_script:
   - apt-get update -y && apt-get install sshpass -y
+  - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
   #- apt-get update && apt-get install -y docker-ce-cli
   #- docker images
 
@@ -24,7 +25,7 @@ stages:
 
 
 build-job:
-  image: maven:3.7.0-jdk-8-slim
+  image: maven:latest
   stage: build
   script:
     - echo "Compiling the code..."
