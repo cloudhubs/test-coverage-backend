@@ -1,3 +1,4 @@
+image: node:latest
 
 before_script:
   - apt-get update -y && apt-get install sshpass -y
@@ -23,7 +24,7 @@ stages:
 
 
 build-job:
-  image: mvn:latest
+  image: maven:latest
   stage: build
   script:
     - echo "Compiling the code..."
