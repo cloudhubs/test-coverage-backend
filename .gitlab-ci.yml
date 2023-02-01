@@ -24,7 +24,7 @@ stages:
 
 
 build-job:
-  image: maven:latest
+  image: maven:3.8.7-openjdk-18
   stage: build
   script:
     - echo "Compiling the code..."
