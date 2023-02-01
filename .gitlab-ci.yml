@@ -1,7 +1,6 @@
 
 before_script:
   - apt-get update -y && apt-get install sshpass -y
-  - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
   #- apt-get update && apt-get install -y docker-ce-cli
   #- docker images
 
@@ -24,7 +23,7 @@ stages:
 
 
 build-job:
-  image: node:latest
+  image: mvn:latest
   stage: build
   script:
     - echo "Compiling the code..."
