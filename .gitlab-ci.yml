@@ -1,8 +1,8 @@
-variables:
-  DOCKER_DRIVER: overlay
+image: docker:latest
 
 before_script:
   - apt-get update -y && apt-get install sshpass -y
+  - docker docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
 
 stages:
   - build
