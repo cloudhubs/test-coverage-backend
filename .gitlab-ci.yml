@@ -25,7 +25,7 @@ stages:
 
 
 build-job:
-  image: maven:latest
+  image: node:latest
   stage: build
   script:
     - echo "Compiling the code..."
