@@ -15,7 +15,7 @@ build-job:
     - mvn package
   artifacts:
     paths:
-      - target/*.jar
+      - target/
 
 deploy-job:
   image: docker:latest
