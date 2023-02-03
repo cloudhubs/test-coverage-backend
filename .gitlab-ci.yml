@@ -2,15 +2,10 @@ image: docker:latest
 
 before_script:
   - apt-get update -y && apt-get install sshpass -y
-  - docker docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
 
 stages:
   - build
   - deploy
-
-cache:
-  paths:
-    - node_modules/
 
 build-job:
   image: maven:latest
@@ -32,9 +27,9 @@ deploy-job:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
-    - scp -r build/* donovan@192.168.3.211:~/testCoverageBackend
+    - scp -r target/* donovan@192.168.3.211:~/testCoverageBackend
 
-    - echo "Deploying application..."
-    - docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
+    #- echo "Deploying application..."
+    #- docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
   only:
     - main
