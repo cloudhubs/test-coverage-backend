@@ -18,10 +18,11 @@ build-job:
       - target/
 
 deploy-job:
-  image: docker:latest
+  #image: docker:latest
+  image: ubuntu:latest
   stage: deploy
-  services:
-       - name: docker:dind
+  #services:
+       #- name: docker:dind
   script:
     - eval "$(ssh-agent -s)"
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
