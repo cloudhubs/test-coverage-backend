@@ -18,14 +18,18 @@ build-job:
       - target/
 
 build image:
-  image: docker:latest
+  image: docker:19.03.12
   stage: deploy
   services:
-    - name: docker:dind
+    - name: docker:19.03.12-dind
       entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
+  variables:
+    DOCKER_TLS_CERTDIR: ''
+    DOCKER_HOST: "tcp://docker:2375"
+
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin 
-    - export DOCKER_HOST=tcp://127.0.0.1:2375 && docker build -t $CI_REGISTRY_IMAGE .
+    - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
 
 deploy-job:
