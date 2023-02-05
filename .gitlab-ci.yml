@@ -31,6 +31,8 @@ build image:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin 
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
+  only:
+    - main
 
 deploy-job:
   image: docker:19.03.12
@@ -46,7 +48,7 @@ deploy-job:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
-    - ssh donovan@192.168.3.211:~/testCoverageBackend
+    - ssh donovan@192.168.3.211
     - echo "HI"
 
     #- echo "Deploying application..."
