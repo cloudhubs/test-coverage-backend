@@ -19,6 +19,7 @@ build-job:
 
 build image:
   image: docker:19
+  stage: deploy
   services:
     - name: docker:dind
       command: ["--tls=false"]
