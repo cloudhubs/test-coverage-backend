@@ -33,17 +33,21 @@ build image:
     - docker push $CI_REGISTRY_IMAGE
 
 deploy-job:
-  #image: docker:latest
-  image: ubuntu:latest
+  image: docker:19.03.12
   stage: deploy
-  #services:
-       #- name: docker:dind
+  services:
+    - name: docker:19.03.12-dind
+      entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
+  variables:
+    DOCKER_TLS_CERTDIR: ''
+    DOCKER_HOST: "tcp://docker:2375"
   script:
     - eval "$(ssh-agent -s)"
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
-    - scp -r target/* donovan@192.168.3.211:~/testCoverageBackend
+    - ssh donovan@192.168.3.211:~/testCoverageBackend
+    - echo "HI"
 
     #- echo "Deploying application..."
     #- docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
