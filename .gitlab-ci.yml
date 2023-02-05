@@ -48,10 +48,9 @@ deploy-job:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
-    - docker save -o ./image.tar test-coverage-backend:latest
-    - scp -r ./image.tar donovan@192.168.3.211:~/testCoverageBackend
     - ssh donovan@192.168.3.211
-    - docker load -i ~/testCoverageBackend/image.tar
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin 
+    - docker pull $CI_REGISTRY_IMAGE
 
     #- echo "Deploying application..."
     #- docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
