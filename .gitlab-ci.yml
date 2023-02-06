@@ -19,7 +19,7 @@ build-job:
 
 build image:
   image: docker:19.03.12
-  stage: deploy
+  stage: build
   services:
     - name: docker:19.03.12-dind
       entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
