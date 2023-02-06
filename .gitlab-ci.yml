@@ -19,7 +19,7 @@ build-job:
 
 build image:
   image: docker:19.03.12
-  stage: build
+  stage: deploy
   services:
     - name: docker:19.03.12-dind
       entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
@@ -35,9 +35,9 @@ build image:
   only:
     - main
 
-deploy-job:
+deploy image to server:
   image: docker:19.03.12
-  stage: deploy
+  stage: .post
   services:
     - name: docker:19.03.12-dind
       entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
