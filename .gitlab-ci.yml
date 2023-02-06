@@ -44,6 +44,8 @@ deploy-job:
   variables:
     DOCKER_TLS_CERTDIR: ''
     DOCKER_HOST: "tcp://docker:2375"
+  dependencies:
+    - build_job
   script:
     - eval "$(ssh-agent -s)"
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
