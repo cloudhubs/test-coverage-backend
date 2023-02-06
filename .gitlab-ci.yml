@@ -23,6 +23,7 @@ build image:
   services:
     - name: docker:19.03.12-dind
       entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
+
   variables:
     DOCKER_TLS_CERTDIR: ''
     DOCKER_HOST: "tcp://docker:2375"
@@ -31,10 +32,7 @@ build image:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin 
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
-    - docker save $CI_REGISTRY_IMAGE -o test_coverage_backend.tar
-  artifacts:
-    paths:
-      - test_coverage_backend.tar
+
   only:
     - main
 
@@ -55,8 +53,8 @@ deploy image to server:
     - mkdir -p ~/.ssh
     - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
 
-    - scp ./test_coverage_backend.tar donovan@192.168.3.211:~/
+    - docker save $CI_REGISTRY_IMAGE -o test_coverage_backend.tar
+    - scp test_coverage_backend.tar donovan@192.168.3.211:~/
     - ssh donovan@192.168.3.211:~/ 'tar xvf test_coverage_backend.tar && docker load -i test_coverage_backend.tar && docker run -d -p 80:80 capgit.ecs.baylor.edu:5555/capstone-group-4/test-coverage-backend'
-
   only:
     - main
