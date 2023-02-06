@@ -31,7 +31,7 @@ build image:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin 
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
-    - docker save $CI_REGISTRY_IMAGE -o test_coverage_backend_latest.tar
+    - docker save $CI_REGISTRY_IMAGE -o test_coverage_backend.tar
   only:
     - main
 
