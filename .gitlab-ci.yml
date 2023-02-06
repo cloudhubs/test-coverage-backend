@@ -48,16 +48,12 @@ deploy-job:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
-    
-    - echo $CI_REGISTRY_PASSWORD
-    - echo $CI_REGISTRY_USER
-    - echo $CI_REGISTRY
-
-    - ssh donovan@192.168.3.211 'echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin'
-    - ssh donovan@192.168.3.211 'docker pull $CI_REGISTRY_IMAGE'
-    - ssh donovan@192.168.3.211 'docker stop test-coverage-backend || true'
-    - ssh donovan@192.168.3.211 'docker rm test-coverage-backend || true'
-    - ssh donovan@192.168.3.211 'docker run -d --name test-coverage-backend -p 80:80 $CI_REGISTRY_IMAGE'
+    - ssh -fN -R 2375:localhost:2375 donovan@192.168.3.211
+    #- ssh -t donovan@192.168.3.211 'echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin'
+    - ssh -t donovan@192.168.3.211 'docker pull $CI_REGISTRY_IMAGE'
+    - ssh -t donovan@192.168.3.211 'docker stop test-coverage-backend || true'
+    - ssh -t donovan@192.168.3.211 'docker rm test-coverage-backend || true'
+    - ssh -t donovan@192.168.3.211 'docker run -d --name test-coverage-backend -p 80:80 $CI_REGISTRY_IMAGE'
 
     #- echo "Deploying application..."
     #- docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
