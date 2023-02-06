@@ -55,7 +55,7 @@ deploy image to server:
 
     - docker pull $CI_REGISTRY_IMAGE
     - docker save $CI_REGISTRY_IMAGE -o test_coverage_backend.tar
-    - scp test_coverage_backend.tar donovan@192.168.3.211:~/
-    - ssh donovan@192.168.3.211:~/ 'tar xvf test_coverage_backend.tar && docker load -i test_coverage_backend.tar && docker run -d -p 80:80 capgit.ecs.baylor.edu:5555/capstone-group-4/test-coverage-backend'
+    - scp test_coverage_backend.tar donovan@192.168.3.211:~/testCoverageBackend
+    - ssh donovan@192.168.3.211 'tar xvf test_coverage_backend.tar && docker load -i test_coverage_backend.tar && docker run -d -p 80:80 capgit.ecs.baylor.edu:5555/capstone-group-4/test-coverage-backend'
   only:
     - main
