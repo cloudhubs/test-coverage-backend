@@ -32,10 +32,9 @@ build image:
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
     - docker save $CI_REGISTRY_IMAGE -o test_coverage_backend.tar
-  
   artifacts:
     paths:
-      - ./test_coverage_backend.tar
+      - test_coverage_backend.tar
   only:
     - main
 
