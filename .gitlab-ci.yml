@@ -29,9 +29,9 @@ build image:
 
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin 
-    - echo $CI_REGISTRY_IMAGE
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
+    - docker save $CI_REGISTRY_IMAGE -o test_coverage_backend_latest.tar
   only:
     - main
 
@@ -49,14 +49,9 @@ deploy-job:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
-    - ssh -fN -R 2375:localhost:2375 donovan@192.168.3.211
-    #- ssh -t donovan@192.168.3.211 'echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin'
-    - ssh -t donovan@192.168.3.211 'docker pull $CI_REGISTRY_IMAGE'
-    - ssh -t donovan@192.168.3.211 'docker stop test-coverage-backend || true'
-    - ssh -t donovan@192.168.3.211 'docker rm test-coverage-backend || true'
-    - ssh -t donovan@192.168.3.211 'docker run -d --name test-coverage-backend -p 80:80 $CI_REGISTRY_IMAGE'
 
-    #- echo "Deploying application..."
-    #- docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
+    - scp test_coverage_backend.tar donovan@192.168.3.211:~/
+    - ssh donovan@192.168.3.211:~/ 'tar xvf test_coverage_backend.tar && docker load -i test_coverage_backend.tar && docker run -d -p 80:80 capgit.ecs.baylor.edu:5555/capstone-group-4/test-coverage-backend'
+
   only:
     - main
