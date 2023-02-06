@@ -51,6 +51,9 @@ deploy-job:
     - ssh donovan@192.168.3.211
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin 
     - docker pull $CI_REGISTRY_IMAGE
+    - docker stop test-coverage-backend || true
+    - docker rm test-coverage-backend || true
+    - docker run -d --name test-coverage-backend -p 80:80 $CI_REGISTRY_IMAGE
 
     #- echo "Deploying application..."
     #- docker build -t registry.gitlab.com/myusername/myproject . -f Dockerfile
