@@ -35,7 +35,7 @@ build image:
   
   artifacts:
     paths:
-      - ./
+      - ./test_coverage_backend.tar
   only:
     - main
 
