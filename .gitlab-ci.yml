@@ -1,15 +1,18 @@
 image: ubuntu:latest
-
 before_script:
   - apt-get update -y && apt-get install sshpass -y
-
 stages:
+  - .pre
   - build
   - deploy
+variables:
+  HOST_NAME: donovan
+  VMADDR: 192.168.3.211
+  TAR_IMAGE_NAME: test_coverage_backend.tar
 
-build-job:
+Build Project:
   image: maven:latest
-  stage: build
+  stage: .pre
   script:
     - echo "Compiling the code..."
     - mvn package
@@ -17,28 +20,25 @@ build-job:
     paths:
       - target/
 
-build image:
+Build Docker Image:
   image: docker:19.03.12
-  stage: deploy
+  stage: build
   services:
     - name: docker:19.03.12-dind
       entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
-
   variables:
     DOCKER_TLS_CERTDIR: ''
     DOCKER_HOST: "tcp://docker:2375"
-
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin 
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
-
   only:
     - main
 
-deploy image to server:
+Deploy Docker Image to Server:
   image: docker:19.03.12
-  stage: .post
+  stage: deploy
   services:
     - name: docker:19.03.12-dind
       entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
@@ -46,16 +46,17 @@ deploy image to server:
     DOCKER_TLS_CERTDIR: ''
     DOCKER_HOST: "tcp://docker:2375"
   dependencies:
-    - build image
+    - Build Docker Image
   script:
     - eval "$(ssh-agent -s)"
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
-    - ssh-keyscan -H 192.168.3.211 >> ~/.ssh/known_hosts
+    - ssh-keyscan -H $VMADDR >> ~/.ssh/known_hosts
 
     - docker pull $CI_REGISTRY_IMAGE
-    - docker save $CI_REGISTRY_IMAGE -o test_coverage_backend.tar
-    - scp test_coverage_backend.tar donovan@192.168.3.211:~/testCoverageBackend
-    - ssh donovan@192.168.3.211 'cd testCoverageBackend && tar xvf test_coverage_backend.tar && docker load -i test_coverage_backend.tar && docker run -d -p 80:80 capgit.ecs.baylor.edu:5555/capstone-group-4/test-coverage-backend'
+    - docker save $CI_REGISTRY_IMAGE -o $TAR_IMAGE_NAME
+    - scp $TAR_IMAGE_NAME $HOST_NAME@$VMADDR:~/testCoverageBackend
+    - ssh $HOST_NAME@$VMADDR 'cd testCoverageBackend && tar xvf $ && docker load -i $TAR_IMAGE_NAME && docker run -d -p 80:80 $CI_REGISTRY_IMAGE'
+    #- used to be capgit.ecs.baylor.edu:5555/capstone-group-4/test-coverage-backend instead of $CI_REGISTRY_IMAGE
   only:
     - main
