@@ -36,7 +36,7 @@ Build Docker Image:
   only:
     - main
 
-Deploy Docker Image to Server:
+Deploy Docker Image:
   image: docker:19.03.12
   stage: deploy
   services:
@@ -56,7 +56,7 @@ Deploy Docker Image to Server:
     - docker pull $CI_REGISTRY_IMAGE
     - docker save $CI_REGISTRY_IMAGE -o $TAR_IMAGE_NAME
     - scp $TAR_IMAGE_NAME $HOST_NAME@$VMADDR:~/testCoverageBackend
-    - ssh $HOST_NAME@$VMADDR 'cd testCoverageBackend && tar xvf $ && docker load -i $TAR_IMAGE_NAME && docker run -d -p 80:80 $CI_REGISTRY_IMAGE'
+    - ssh $HOST_NAME@$VMADDR 'cd testCoverageBackend && tar xvf $TAR_IMAGE_NAME && docker load -i $TAR_IMAGE_NAME && docker run -d -p 80:80 $CI_REGISTRY_IMAGE'
     #- used to be capgit.ecs.baylor.edu:5555/capstone-group-4/test-coverage-backend instead of $CI_REGISTRY_IMAGE
   only:
     - main
