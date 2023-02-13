@@ -2,17 +2,18 @@ image: ubuntu:latest
 before_script:
   - apt-get update -y && apt-get install sshpass -y
 stages:
-  - .pre
   - build
-  - deploy
+  - buildImage
+  - deployImage
 variables:
   HOST_NAME: donovan
   VMADDR: 192.168.3.211
   TAR_IMAGE_NAME: test_coverage_backend.tar
 
+
 Build Project:
   image: maven:latest
-  stage: .pre
+  stage: build
   script:
     - echo "Compiling the code..."
     - mvn package
@@ -22,7 +23,7 @@ Build Project:
 
 Build Docker Image:
   image: docker:19.03.12
-  stage: build
+  stage: buildImage
   services:
     - name: docker:19.03.12-dind
       entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
@@ -38,7 +39,7 @@ Build Docker Image:
 
 Deploy Docker Image:
   image: docker:19.03.12
-  stage: deploy
+  stage: deployImage
   services:
     - name: docker:19.03.12-dind
       entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
