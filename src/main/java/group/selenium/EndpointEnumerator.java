@@ -14,8 +14,10 @@ import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.metamodel.AnnotationExprMetaModel;
 import com.github.javaparser.metamodel.AnnotationMemberDeclarationMetaModel;
+import com.github.javaparser.metamodel.MarkerAnnotationExprMetaModel;
 import com.github.javaparser.symbolsolver.javaparsermodel.contexts.AnnotationDeclarationContext;
 import com.google.common.base.Strings;
+import group.selenium.DirectoryTraverser;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,16 +28,26 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+
 public class EndpointEnumerator {
 
-    /* This might need to change if we are searching for more REST API types */
+    enum ApiType{
+        GET,
+        REQUEST,
+        POST,
+        PUT,
+        PATCH,
+        DELETE,
+        UNDEFINED
+    }
+
     public static Set<String> validEndpoints = new HashSet<String>(Arrays.asList("RequestBody",
-                                                                                    "GetMapping",
-                                                                                    "PostMapping",
-                                                                                    "RequestMapping",
-                                                                                    "PutMapping",
-                                                                                    "DeleteMapping",
-                                                                                    "PatchMapping"));
+                                                                                "GetMapping",
+                                                                                "PostMapping",
+                                                                                "RequestMapping",
+                                                                                "PutMapping",
+                                                                                "DeleteMapping",
+                                                                                "PatchMapping"));
 
     public static void listClasses(File projectDir) {
 
@@ -60,20 +72,20 @@ public class EndpointEnumerator {
         }).explore(projectDir);
     }
 
-    public static void listMethodCalls(File projectDir) {
+    public static void listApiAnnotations(File projectDir) {
         new DirectoryTraverser((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
             System.out.println(path);
             System.out.println(Strings.repeat("=", path.length()));
             try {
                 new VoidVisitorAdapter<Object>() {
                     @Override
-                    public void visit(MarkerAnnotationExpr n, Object arg) {
+                    public void visit(SingleMemberAnnotationExpr n, Object arg) {
                         super.visit(n, arg);
 
                         Name candidate = n.getName();
 
                         if(validEndpoints.contains(candidate.toString())) {
-                            System.out.println(n.getName().toString());
+                            printApiInformation(n);
                         }
                     }
                 }.visit(StaticJavaParser.parse(file), null);
@@ -91,13 +103,47 @@ public class EndpointEnumerator {
 
     @interface X { int id(); }
 
+    public static void printApiInformation(SingleMemberAnnotationExpr n) {
+
+        ApiType type = ApiType.UNDEFINED;
+
+        //System.out.println(n.getName().toString());
+        switch(n.getName().toString()) {
+            case "GetMapping":
+                type = ApiType.GET;
+                break;
+            case "RequestBody":
+            case "RequestMapping":
+                type = ApiType.REQUEST;
+                break;
+            case "PostMapping":
+                type = ApiType.POST;
+                break;
+            case "PutMapping":
+                type = ApiType.PUT;
+                break;
+            case "DeleteMapping":
+                type = ApiType.DELETE;
+                break;
+            case "PatchMapping":
+                type = ApiType.PATCH;
+                break;
+        }
+
+        if(type != ApiType.UNDEFINED) {
+            System.out.println(type + " API call found through: " + n.getName());
+            String endpointPath = n.toString().substring(n.toString().indexOf("(") + 1, n.toString().length() - 1);
+            System.out.println("\t- Call using HTTP Path extension: " + endpointPath + "\n");
+        }
+        else {
+            System.out.println("*ISSUE*: " + n.getName() + " API call found which is undefined in the scope");
+        }
+    }
+
     @Deprecated
     public static void main(String[] args) {
-
-        /* Find a way to make an interface for this so it is instance independant */
-        File projectDir = new File("./../../SwaggerSample");
+        File projectDir = new File("./../../SeleniumSample");
         //listClasses(projectDir);
-        listMethodCalls(projectDir);
+        listApiAnnotations(projectDir);
     }
 }
-
