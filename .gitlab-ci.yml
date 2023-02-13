@@ -9,6 +9,9 @@ variables:
   HOST_NAME: donovan
   VMADDR: 192.168.3.211
   TAR_IMAGE_NAME: test_coverage_backend.tar
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
 
 Build Project:
   image: maven:latest
