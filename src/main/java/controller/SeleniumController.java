@@ -17,8 +17,8 @@ public class SeleniumController {
     ConcurrentMap<String, Extractable> extractables = new ConcurrentHashMap<>();
 
     @PostMapping("/")
-    public List<EndpointInfo> getAll() {
-        return new ArrayList<EndpointInfo>(EndpointEnumerator.listApiAnnotations(new File("./../../SeleniumSample")));
+    public List<EndpointInfo> getAll(@RequestParam("file") File file) {
+        return new ArrayList<EndpointInfo>(EndpointEnumerator.listApiAnnotations(file));
     }
 
 
