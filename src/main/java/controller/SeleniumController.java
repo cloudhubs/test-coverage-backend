@@ -11,13 +11,14 @@ import java.util.concurrent.ConcurrentMap;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/tests/selenium/")
+@RequestMapping("/tests/selenium")
 public class SeleniumController {
 
     ConcurrentMap<String, Extractable> extractables = new ConcurrentHashMap<>();
 
     @PostMapping("/")
     public List<EndpointInfo> getAll(@RequestParam("file") File file) {
+    	System.out.println("Got the file");
         return new ArrayList<EndpointInfo>(EndpointEnumerator.listApiAnnotations(file));
     }
 
