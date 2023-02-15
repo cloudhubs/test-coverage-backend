@@ -1,4 +1,4 @@
-package controller;
+package com.groupfour.testcoveragetool.controller;
 
 public class Extractable {
 

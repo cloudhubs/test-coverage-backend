@@ -1,7 +1,6 @@
-package controller;
+package com.groupfour.testcoveragetool.controller;
 
-import group.selenium.EndpointEnumerator;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.groupfour.testcoveragetool.group.selenium.EndpointEnumerator;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;

@@ -1,4 +1,4 @@
-package group.selenium;
+package com.groupfour.testcoveragetool.group.selenium;
 
 import java.io.File;
 

@@ -1,30 +1,15 @@
-package group.selenium;
+package com.groupfour.testcoveragetool.group.selenium;
 
 import java.io.File;
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseException;
 import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.AnnotationDeclaration;
-import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.comments.BlockComment;
 import com.github.javaparser.ast.expr.*;
-import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.metamodel.AnnotationExprMetaModel;
-import com.github.javaparser.metamodel.AnnotationMemberDeclarationMetaModel;
-import com.github.javaparser.metamodel.MarkerAnnotationExprMetaModel;
-import com.github.javaparser.symbolsolver.javaparsermodel.contexts.AnnotationDeclarationContext;
 import com.google.common.base.Strings;
-import controller.EndpointInfo;
-import group.selenium.DirectoryTraverser;
+import com.groupfour.testcoveragetool.controller.EndpointInfo;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
