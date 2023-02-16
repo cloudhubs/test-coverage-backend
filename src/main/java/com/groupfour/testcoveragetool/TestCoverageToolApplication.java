@@ -9,15 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.groupfour.testcoveragetool.controller.SeleniumController;
 
-@RestController
-@EnableAutoConfiguration
 @SpringBootApplication
 public class TestCoverageToolApplication {
-
-	@RequestMapping("/")
-	String ping() {
-		return "pong";
-	}
 	
 	@Autowired
 	private SeleniumController seleniumController;

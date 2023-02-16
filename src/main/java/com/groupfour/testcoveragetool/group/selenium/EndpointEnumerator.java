@@ -1,6 +1,8 @@
 package com.groupfour.testcoveragetool.group.selenium;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -59,14 +61,34 @@ public class EndpointEnumerator {
         }).explore(projectDir);
     }
 
-    public static ArrayList<EndpointInfo> listApiAnnotations(File projectDir) {
-
+    public static ArrayList<EndpointInfo> listApiAnnotations(File projectFile) {
         ArrayList<EndpointInfo> toReturn = new ArrayList<>();
 
-        new DirectoryTraverser((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
-            System.out.println(path);
-            System.out.println(Strings.repeat("=", path.length()));
-            try {
+	    if(projectFile.isDirectory()) {
+	        new DirectoryTraverser((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
+	            System.out.println(path);
+	            System.out.println(Strings.repeat("=", path.length()));
+	            try {
+	                new VoidVisitorAdapter<Object>() {
+	                    @Override
+	                    public void visit(SingleMemberAnnotationExpr n, Object arg) {
+	                        super.visit(n, arg);
+	
+	                        Name candidate = n.getName();
+	
+	                        if(validEndpoints.contains(candidate.toString())) {
+	                            toReturn.add(printApiInformation(n));
+	                        }
+	                    }
+	                }.visit(StaticJavaParser.parse(file), null);
+	                System.out.println(); // empty line
+	            } catch (IOException e) {
+	                new RuntimeException(e);
+	            }
+	        }).explore(projectFile);
+        }
+	    else {
+	    	try {
                 new VoidVisitorAdapter<Object>() {
                     @Override
                     public void visit(SingleMemberAnnotationExpr n, Object arg) {
@@ -78,17 +100,12 @@ public class EndpointEnumerator {
                             toReturn.add(printApiInformation(n));
                         }
                     }
-                }.visit(StaticJavaParser.parse(file), null);
+                }.visit(StaticJavaParser.parse(projectFile), null);
                 System.out.println(); // empty line
             } catch (IOException e) {
                 new RuntimeException(e);
             }
-        }).explore(projectDir);
-
-        /* Find me */
-        for(int i = 0; i < 10; i++) {
-            System.out.print("");
-        }
+	    }
 
         return toReturn;
     }

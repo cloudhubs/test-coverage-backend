@@ -2,30 +2,43 @@ package com.groupfour.testcoveragetool.controller;
 
 import com.groupfour.testcoveragetool.group.selenium.EndpointEnumerator;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE}, allowedHeaders = "*")
 @RestController
 @RequestMapping("/tests/selenium")
 public class SeleniumController {
 
     ConcurrentMap<String, Extractable> extractables = new ConcurrentHashMap<>();
 
-    @PostMapping("/")
-    public List<EndpointInfo> getAll(@RequestParam("file") File file) {
+    @PostMapping("/getAll")
+    public String getAll(@RequestParam("file") MultipartFile file) throws IOException {
+    	
+    	File tempFile = File.createTempFile("temp-", file.getOriginalFilename());
+        file.transferTo(tempFile);
+		
     	System.out.println("Got the file");
-        return new ArrayList<EndpointInfo>(EndpointEnumerator.listApiAnnotations(file));
+        ArrayList<EndpointInfo> list =  new ArrayList<EndpointInfo>(EndpointEnumerator.listApiAnnotations(tempFile));
+        String toRet = "";
+        for(EndpointInfo e:list) {
+        	String path =  e.getPath().substring(1, e.getPath().length() - 1);
+        	toRet += e.getMethod() + " ";
+        	toRet += path + '\n';
+        }
+        return toRet;
     }
 
 
     
 
 
-
+    /*
     @GetMapping("/{id}")
     public Extractable getByID(@PathVariable String id) {
         return extractables.get(id);
@@ -36,4 +49,5 @@ public class SeleniumController {
         extractables.put(extractable.getId(), extractable);
         return extractable;
     }
+    */
 }
