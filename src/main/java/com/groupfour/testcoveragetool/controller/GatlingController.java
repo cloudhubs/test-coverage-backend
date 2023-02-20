@@ -14,7 +14,8 @@ import java.util.concurrent.ConcurrentMap;
 @CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.GET,
                                                             RequestMethod.POST,
                                                             RequestMethod.PUT,
-                                                            RequestMethod.DELETE},
+                                                            RequestMethod.DELETE,
+                                                            RequestMethod.PATCH},
     allowedHeaders = "*")
 @RestController
 @RequestMapping("/tests/gatling")
