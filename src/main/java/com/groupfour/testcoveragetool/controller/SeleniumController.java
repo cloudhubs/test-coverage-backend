@@ -1,6 +1,6 @@
 package com.groupfour.testcoveragetool.controller;
 
-import com.groupfour.testcoveragetool.group.selenium.EndpointEnumerator;
+import com.groupfour.testcoveragetool.group.selenium.SeleniumEndpointEnumerator;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-@CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE}, allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH}, allowedHeaders = "*")
 @RestController
 @RequestMapping("/tests/selenium")
 public class SeleniumController {
@@ -24,7 +24,7 @@ public class SeleniumController {
         file.transferTo(tempFile);
 		
     	System.out.println("Got the file");
-        ArrayList<EndpointInfo> list =  new ArrayList<EndpointInfo>(EndpointEnumerator.listApiAnnotations(tempFile));
+        ArrayList<EndpointInfo> list =  new ArrayList<EndpointInfo>(SeleniumEndpointEnumerator.listApiAnnotations(tempFile));
         String toRet = "";
         for(EndpointInfo e:list) {
         	String path =  e.getPath().substring(1, e.getPath().length() - 1);
