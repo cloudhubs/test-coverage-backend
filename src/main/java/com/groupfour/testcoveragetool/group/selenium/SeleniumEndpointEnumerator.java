@@ -28,7 +28,7 @@ public class SeleniumEndpointEnumerator {
                                                                                 //"RequestMapping",
                                                                                 "DeleteMapping"));
 
-    public static void listClasses(File projectDir) {
+    public static void listClasses(File projectDir) throws IOException {
 
         JavaParser x = new JavaParser();
 
@@ -51,7 +51,7 @@ public class SeleniumEndpointEnumerator {
         }).explore(projectDir);
     }
 
-    public static ArrayList<EndpointInfo> listApiAnnotations(File projectFile) {
+    public static ArrayList<EndpointInfo> listApiAnnotations(File projectFile) throws IOException {
         ArrayList<EndpointInfo> toReturn = new ArrayList<>();
 
 	    if(projectFile.isDirectory()) {
@@ -144,7 +144,7 @@ public class SeleniumEndpointEnumerator {
     }
 
     @Deprecated
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         File projectDir = new File("./../../SeleniumSample");
         //listClasses(projectDir);
         listApiAnnotations(projectDir);
