@@ -1,7 +1,6 @@
 package com.groupfour.testcoveragetool.controller;
 
 import com.groupfour.testcoveragetool.group.gatling.GatlingEndpointEnumerator;
-import com.groupfour.testcoveragetool.group.selenium.SeleniumEndpointEnumerator;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
