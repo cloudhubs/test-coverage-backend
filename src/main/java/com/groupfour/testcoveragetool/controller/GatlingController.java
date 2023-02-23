@@ -34,7 +34,7 @@ public class GatlingController {
         for(EndpointInfo e:list) {
             String path =  e.getPath().substring(1, e.getPath().length() - 1);
             toRet += e.getMethod() + " ";
-            toRet += path + '\n';
+            toRet += e.getPath() + '\n';
         }
         return toRet;
     }
