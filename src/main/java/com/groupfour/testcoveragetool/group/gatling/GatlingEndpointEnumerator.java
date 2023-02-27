@@ -66,47 +66,11 @@ public class GatlingEndpointEnumerator {
 
                 ArrayList<EndpointInfo> endpointsFound = getInfo(file);
                 finalToReturn.addAll(endpointsFound);
-
-                /*
-                try {
-                    new VoidVisitorAdapter<Object>() {
-                        @Override
-                        public void visit(MethodDeclaration n, Object arg) {
-                            super.visit(n, arg);
-
-                            SimpleName candidate = n.getName();
-
-                            if(validEndpoints.contains(candidate.toString())) {
-                                toReturn.add(printApiInformation(n));
-                            }
-                        }
-                    }.visit(StaticJavaParser.parse(file), null);
-                    System.out.println(); // empty line
-                } catch (IOException e) {
-                    new RuntimeException(e);
-                }*/
             }).explore(projectFile);
             toReturn = finalToReturn;
         }
         else {
             toReturn = getInfo(projectFile);
-//            try {
-//                new VoidVisitorAdapter<Object>() {
-//                    @Override
-//                    public void visit(MethodDeclaration n, Object arg) {
-//                        super.visit(n, arg);
-//
-//                        SimpleName candidate = n.getName();
-//
-//                        if(validEndpoints.contains(candidate.toString())) {
-//                            toReturn.add(printApiInformation(endpoint));
-//                        }
-//                    }
-//                }.visit(StaticJavaParser.parse(projectFile), null);
-//                System.out.println(); // empty line
-//            } catch (IOException e) {
-//                new RuntimeException(e);
-//            }
         }
 
         return toReturn;
