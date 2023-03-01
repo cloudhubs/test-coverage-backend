@@ -35,9 +35,6 @@ public class SeleniumController {
     }
 
 
-    
-
-
     /*
     @GetMapping("/{id}")
     public Extractable getByID(@PathVariable String id) {
