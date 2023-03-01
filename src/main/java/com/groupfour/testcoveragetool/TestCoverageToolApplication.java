@@ -1,6 +1,7 @@
 package com.groupfour.testcoveragetool;
 
 import com.groupfour.testcoveragetool.group.elasticsearch.LogReader;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -23,7 +24,7 @@ public class TestCoverageToolApplication {
 
 		try {
 			LogReader.elasticServiceThing();
-		} catch (IOException e) {
+		} catch (IOException | JSONException e) {
 			e.printStackTrace();
 		}
 
