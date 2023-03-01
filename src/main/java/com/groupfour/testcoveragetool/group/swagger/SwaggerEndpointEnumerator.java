@@ -69,12 +69,11 @@ public class SwaggerEndpointEnumerator {
         }).explore(projectDir);
 
         if (projectDir.isDirectory()) {
-            deleteDirectory(toDelete);
+            deleteDirectory(projectDir);
             projectDir.delete();
         }
 
-        // Donny Needs to Implement to get endpoints from file and return list of endpoints
-
+        System.out.println("Endpoints: " + toReturn.size());
         return toReturn;
     }
 
