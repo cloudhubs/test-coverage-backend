@@ -32,7 +32,7 @@ public class GatlingController {
         file.transferTo(tempFile);
 
         System.out.println("Got the file");
-        ArrayList<EndpointInfo> list = new ArrayList<>(GatlingEndpointEnumerator.listApiAnnotations(tempFile));
+        List<EndpointInfo> list = new ArrayList<>(GatlingEndpointEnumerator.listApiAnnotations(tempFile));
         String toRet = "";
         for(EndpointInfo e:list) {
             String path =  e.getPath().substring(1, e.getPath().length() - 1);

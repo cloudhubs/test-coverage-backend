@@ -73,6 +73,7 @@ public class SwaggerEndpointEnumerator {
             projectDir.delete();
         }
 
+        System.out.println("Endpoints: " + toReturn.size());
         return toReturn;
     }
 

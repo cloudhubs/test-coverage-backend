@@ -15,7 +15,11 @@ import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class GatlingEndpointEnumerator {
     public static List<String> validEndpoints = new ArrayList<>() {
@@ -105,6 +109,85 @@ public class GatlingEndpointEnumerator {
     @interface X { int id(); }
     
     public static ArrayList<EndpointInfo> getInfo(File projectFile) throws IOException {
+        ArrayList<EndpointInfo> toReturn = new ArrayList<EndpointInfo>();
+
+        try (Stream<Path> walkStream = Files.walk(Paths.get(projectFile.getAbsolutePath()))) {
+            walkStream.filter(p -> p.toFile().isFile()).forEach(f -> {
+                if (f.getFileName().toString().endsWith(".scala") && !f.getFileName().toString().startsWith(".")) {
+                    System.out.println(f.toFile().getAbsolutePath());
+                    BufferedReader br = null;
+                    try {
+                        br = new BufferedReader(new FileReader(f.toFile()));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    String basePath, s;
+                    while(true) {
+                        try {
+                            if (!((s = br.readLine()) != null && !s.contains(BASEURL))) break;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        ;
+                    }
+                    basePath = s.substring(BASEURL.length() + SUBIDX, s.length() - SUBIDX);
+                    EndpointInfo baseEnd = new EndpointInfo("BASEURL", basePath);
+                    toReturn.add(printApiInformation(baseEnd));
+
+                    String curr = null;
+
+                    while (true) {
+                        try {
+                            if (!((curr = br.readLine()) != null)) break;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        EndpointInfo endpoint = new EndpointInfo ("", "");
+                        String noTabs = curr.replace("\t", "");
+                        /* check for get */
+                        if (noTabs.contains(validEndpoints.get(0))) {
+                            endpoint.setMethod("GET");
+                            endpoint.setPath(noTabs.substring(GETPUTIDX, noTabs.length() - SUBIDX - 1));
+                        }
+
+                        /* check for post */
+                        else if (noTabs.contains(validEndpoints.get(1))) {
+                            endpoint.setMethod("POST");
+                            endpoint.setPath(noTabs.substring(POSTIDX, noTabs.length() - SUBIDX));
+                        }
+
+                        /* check for put */
+                        else if (noTabs.contains(validEndpoints.get(2))) {
+                            endpoint.setMethod("PUT");
+                            endpoint.setPath(noTabs.substring(GETPUTIDX, noTabs.length() - SUBIDX));
+                        }
+
+                        /* check for httpRequest*/
+                        else if (noTabs.contains(validEndpoints.get(3))) {
+                            endpoint.setMethod("HTTPREQUEST");
+                            endpoint.setPath(noTabs.substring(REQUESTIDX, noTabs.length() - SUBIDX));
+                        }
+
+                        /* check for patch */
+                        else if (noTabs.contains(validEndpoints.get(4))) {
+                            endpoint.setMethod("PATCH");
+                            endpoint.setPath(noTabs.substring(PATCHIDX, noTabs.length() - SUBIDX));
+                        }
+
+                        /* check for delete */
+                        else if (noTabs.contains(validEndpoints.get(5))) {
+                            endpoint.setMethod("DELETE");
+                            endpoint.setPath(noTabs.substring(DELETEIDX, noTabs.length() - SUBIDX));
+                        }
+
+                        if(!endpoint.getMethod().equals("") && !endpoint.getPath().equals("")) {
+                            toReturn.add(printApiInformation(endpoint));
+                        }
+                    }
+                }
+            });
+        }
+        /*
         File root = new File( projectFile.getName() );
         File[] list = root.listFiles();
 
@@ -129,37 +212,31 @@ public class GatlingEndpointEnumerator {
                 while ((curr = br.readLine()) != null) {
                     EndpointInfo endpoint = new EndpointInfo ("", "");
                     String noTabs = curr.replace("\t", "");
-                    /* check for get */
                     if (noTabs.contains(validEndpoints.get(0))) {
                         endpoint.setMethod("GET");
                         endpoint.setPath(noTabs.substring(GETPUTIDX, noTabs.length() - SUBIDX - 1));
                     }
 
-                    /* check for post */
                     else if (noTabs.contains(validEndpoints.get(1))) {
                         endpoint.setMethod("POST");
                         endpoint.setPath(noTabs.substring(POSTIDX, noTabs.length() - SUBIDX));
                     }
 
-                    /* check for put */
                     else if (noTabs.contains(validEndpoints.get(2))) {
                         endpoint.setMethod("PUT");
                         endpoint.setPath(noTabs.substring(GETPUTIDX, noTabs.length() - SUBIDX));
                     }
 
-                    /* check for httpRequest*/
                     else if (noTabs.contains(validEndpoints.get(3))) {
                         endpoint.setMethod("HTTPREQUEST");
                         endpoint.setPath(noTabs.substring(REQUESTIDX, noTabs.length() - SUBIDX));
                     }
 
-                    /* check for patch */
                     else if (noTabs.contains(validEndpoints.get(4))) {
                         endpoint.setMethod("PATCH");
                         endpoint.setPath(noTabs.substring(PATCHIDX, noTabs.length() - SUBIDX));
                     }
 
-                    /* check for delete */
                     else if (noTabs.contains(validEndpoints.get(5))) {
                         endpoint.setMethod("DELETE");
                         endpoint.setPath(noTabs.substring(DELETEIDX, noTabs.length() - SUBIDX));
@@ -170,7 +247,10 @@ public class GatlingEndpointEnumerator {
                     }
                 }
             }
+
         }
+
+         */
 
         System.out.println(toReturn);
         return toReturn;
