@@ -1,45 +1,29 @@
 package com.groupfour.testcoveragetool.group.elasticsearch;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestClient;
-
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.ElasticsearchException;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
-import co.elastic.clients.transport.ElasticsearchTransport;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
 
 public class LogReader {
 
-	// Create the low-level client
-	private static RestClient restClient = RestClient.builder(
-	    new HttpHost("localhost", 9200)).build();
+	public static void elasticServiceThing() throws IOException {
+		URL url = new URL("http://localhost:9200/logstash-2023.02.27-000001/_search");
+		HttpURLConnection con = (HttpURLConnection) url.openConnection();
+		con.setRequestMethod("GET");
 
-	
-	// Create the transport with a Jackson mapper
-	private static ElasticsearchTransport transport = new RestClientTransport(
-	    restClient, new JacksonJsonpMapper());
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
 
-	// And create the API client
-	private static ElasticsearchClient client = new ElasticsearchClient(transport);
+		StringBuffer response = new StringBuffer();
 
-	public static void main(String[] args) throws ElasticsearchException, IOException {
-		SearchResponse<String> search = client.search(s -> s
-			    .index("products")
-			    .query(q -> q
-			        .term(t -> t
-			            .field("message")
-			            //.value(v -> v.stringValue("bicycle"))
-			        )),
-			    String.class);
-		
-		for(Hit<String> hit:search.hits().hits()) {
-			System.out.println(hit.source());
+		while(((inputLine = in.readLine()) != null)) {
+			response.append(inputLine);
 		}
+		in.close();
+		System.out.println(response.toString());
 	}
 
 }
