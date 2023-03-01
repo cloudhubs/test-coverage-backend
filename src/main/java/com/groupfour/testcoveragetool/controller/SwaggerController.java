@@ -1,5 +1,7 @@
 package com.groupfour.testcoveragetool.controller;
 
+import com.groupfour.testcoveragetool.group.swagger.SwaggerEndpointEnumerator;
+import net.lingala.zip4j.exception.ZipException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,13 +34,14 @@ public class SwaggerController {
         }};
 
     @PostMapping("/getEndPoints")
-    public List<String> getEndPoints(@RequestParam("file") MultipartFile mFile) throws IOException {
+    public List<EndpointInfo> getEndPoints(@RequestParam("file") MultipartFile mFile) throws IOException, ZipException {
         List<String> endpoints = new ArrayList<>();
         File file = File.createTempFile("temp-", mFile.getOriginalFilename());
         mFile.transferTo(file);
         String basePath, s;
         int i;
 
+        /*
         BufferedReader br = new BufferedReader(new FileReader(file));
 
         while ((s = br.readLine()) != null && !s.contains(BASE_PATH));
@@ -75,7 +78,8 @@ public class SwaggerController {
                 endpoints.add(type + current);
             }
         }
+         */
 
-        return endpoints;
+        return SwaggerEndpointEnumerator.listApiAnnotations(file);
     }
 }

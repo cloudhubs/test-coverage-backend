@@ -3,6 +3,7 @@ package com.groupfour.testcoveragetool.controller;
 import com.groupfour.testcoveragetool.group.gatling.GatlingEndpointEnumerator;
 import com.groupfour.testcoveragetool.group.selenium.SeleniumEndpointEnumerator;
 import com.groupfour.testcoveragetool.group.swagger.SwaggerEndpointEnumerator;
+import net.lingala.zip4j.exception.ZipException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,7 +26,7 @@ public class CoverageController {
     @PostMapping("/getCoverage")
     public String getCoverage(@RequestParam("file") MultipartFile file,
                               @RequestParam("file2") MultipartFile file2,
-                              @RequestParam("file3") MultipartFile file3) throws IOException {
+                              @RequestParam("file3") MultipartFile file3) throws IOException, ZipException {
 
         File seleniumTempFile = File.createTempFile("covTemp-", file.getOriginalFilename());
         File gatlingTempFile = File.createTempFile("covTemp-", file2.getOriginalFilename());

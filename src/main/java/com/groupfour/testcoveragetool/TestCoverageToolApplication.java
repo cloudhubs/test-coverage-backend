@@ -1,5 +1,6 @@
 package com.groupfour.testcoveragetool;
 
+import com.groupfour.testcoveragetool.controller.SwaggerController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -14,6 +15,9 @@ public class TestCoverageToolApplication {
 	
 	@Autowired
 	private SeleniumController seleniumController;
+
+	@Autowired
+	private SwaggerController swaggerController;
 	
 	public static void main(String[] args) {
 		SpringApplication.run(TestCoverageToolApplication.class, args);
