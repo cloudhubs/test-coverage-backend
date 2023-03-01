@@ -7,8 +7,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import net.lingala.zip4j.exception.ZipException;
 
 @CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.GET,
                                                             RequestMethod.POST,
@@ -23,7 +26,7 @@ public class GatlingController {
     ConcurrentMap<String, Extractable> extractables = new ConcurrentHashMap<>();
 
     @PostMapping("/getAll")
-    public String getAll(@RequestParam("file") MultipartFile file) throws IOException {
+    public List<EndpointInfo> getAll(@RequestParam("file") MultipartFile file) throws IOException, ZipException {
 
         File tempFile = File.createTempFile("temp-", file.getOriginalFilename());
         file.transferTo(tempFile);
@@ -36,6 +39,6 @@ public class GatlingController {
             toRet += e.getMethod() + " ";
             toRet += e.getPath() + '\n';
         }
-        return toRet;
+        return list;
     }
 }
