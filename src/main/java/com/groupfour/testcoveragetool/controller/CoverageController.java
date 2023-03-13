@@ -77,7 +77,7 @@ public class CoverageController {
     }
 
     @GetMapping("/getNo")
-    public int getNoCoverage(ArrayList<EndpointInfo> selenium, ArrayList<EndpointInfo> gatling, ArrayList<EndpointInfo> swagger) {
+    public int getNoCoverage(ArrayList<EndpointInfo> swagger) {
         //get difference between swagger size and 2 counters
     }
 }
