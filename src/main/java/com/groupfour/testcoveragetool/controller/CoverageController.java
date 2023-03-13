@@ -10,6 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -45,7 +47,14 @@ public class CoverageController {
         ArrayList<EndpointInfo> swaggerList = new ArrayList<>(SwaggerEndpointEnumerator.listApiAnnotations(swaggerTempFile));
 
         //Remove duplicates from lists by changing to set and back to array list
+        Set<EndpointInfo> noDupesSelenium = new LinkedHashSet<>(seleniumList);
+        Set<EndpointInfo> noDupesGatling = new LinkedHashSet<>(gatlingList);
+        Set<EndpointInfo> noDupesSwagger = new LinkedHashSet<>(swaggerList);
 
+        ArrayList<EndpointInfo> finalSeleniumList = new ArrayList<>(noDupesSelenium);
+        ArrayList<EndpointInfo> finalGatlingList = new ArrayList<>(noDupesGatling);
+        ArrayList<EndpointInfo> finalSwaggerList = new ArrayList<>(noDupesSwagger);
+        
         String toRet = "";
         int totalEndpoints = swaggerList.size();
 
