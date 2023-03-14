@@ -39,6 +39,8 @@ public class CoverageController {
         ArrayList<EndpointInfo> gatlingList = new ArrayList<>(GatlingEndpointEnumerator.listApiAnnotations(gatlingTempFile));
         ArrayList<EndpointInfo> swaggerList = new ArrayList<>(SwaggerEndpointEnumerator.listApiAnnotations(swaggerTempFile));
 
+        getTotalCoverage();
+
         String toRet = "";
         int totalEndpoints = swaggerList.size();
 
@@ -57,5 +59,30 @@ public class CoverageController {
         int coveredEndpoints = swaggerList.size();
 
         return toRet + (coveredEndpoints/totalEndpoints);
+    }
+
+    @GetMapping("/getPartial")
+    public int getPartialCoverage(ArrayList<EndpointInfo> selenium, ArrayList<EndpointInfo> gatling, ArrayList<EndpointInfo> swagger) {
+        //if in one and not the other then increment counter\
+        //can use global variable for counter to make no coverage easier
+
+        //rec counter
+        return 1;
+    }
+
+    @PostMapping("/getTotal")
+    public int getTotalCoverage() {
+        System.err.println("test 2");
+        //if in both and not then increment counter
+        //can use global variable for counter to make no coverage easier
+
+        //ret counter
+        return 50;
+    }
+
+    @GetMapping("/getNo")
+    public int getNoCoverage(ArrayList<EndpointInfo> swagger) {
+        //get difference between swagger size and 2 counters
+        return 1;
     }
 }

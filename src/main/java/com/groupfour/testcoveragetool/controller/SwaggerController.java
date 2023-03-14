@@ -82,4 +82,14 @@ public class SwaggerController {
 
         return SwaggerEndpointEnumerator.listApiAnnotations(file);
     }
+
+    @GetMapping("/getTotal")
+    public int getTotalCoverage() throws ZipException, IOException {
+        System.err.println("test 2");
+        //if in both and not then increment counter
+        //can use global variable for counter to make no coverage easier
+
+        //ret counter
+        return 100;
+    }
 }
