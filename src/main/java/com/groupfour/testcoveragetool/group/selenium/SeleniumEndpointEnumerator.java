@@ -9,6 +9,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.google.common.base.Strings;
+import com.groupfour.testcoveragetool.controller.CoverageController;
 import com.groupfour.testcoveragetool.controller.EndpointInfo;
 import com.groupfour.testcoveragetool.group.APIType;
 
@@ -97,6 +98,7 @@ public class SeleniumEndpointEnumerator {
             }
 	    }
 
+        CoverageController.setSelenium(toReturn);
         return toReturn;
     }
 

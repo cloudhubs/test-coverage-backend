@@ -4,6 +4,7 @@ import com.groupfour.testcoveragetool.group.gatling.GatlingEndpointEnumerator;
 import com.groupfour.testcoveragetool.group.selenium.SeleniumEndpointEnumerator;
 import com.groupfour.testcoveragetool.group.swagger.SwaggerEndpointEnumerator;
 import net.lingala.zip4j.exception.ZipException;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,10 +26,28 @@ import java.util.concurrent.ConcurrentMap;
 @RequestMapping("/tests/coverage")
 public class CoverageController {
 
-    public static int GATLINGCOVERAGE = 0;
-    public static int SELENIUMCOVERAGE = 0;
-    public static int PARTIALCOVERAGE = 0;
-    public static int TOTALCOVERAGE = 0;
+    private static int GATLINGCOVERAGE = 0;
+    private static int SELENIUMCOVERAGE = 0;
+    private static int PARTIALCOVERAGE = 0;
+    private static int TOTALCOVERAGE = 0;
+
+    private static ArrayList<EndpointInfo> swagger;
+    private static ArrayList<EndpointInfo> gatling;
+    private static ArrayList<EndpointInfo> selenium;
+
+    private boolean testing = true;
+
+    public static void setSwagger(ArrayList<EndpointInfo> swagger) {
+        CoverageController.swagger = swagger;
+    }
+
+    public static void setGatling(ArrayList<EndpointInfo> gatling) {
+        CoverageController.gatling = gatling;
+    }
+
+    public static void setSelenium(ArrayList<EndpointInfo> selenium) {
+        CoverageController.selenium = selenium;
+    }
 
     @PostMapping("/getCoverage")
     public String getCoverage(@RequestParam("file") MultipartFile file,
@@ -54,7 +73,16 @@ public class CoverageController {
         ArrayList<EndpointInfo> finalSeleniumList = new ArrayList<>(noDupesSelenium);
         ArrayList<EndpointInfo> finalGatlingList = new ArrayList<>(noDupesGatling);
         ArrayList<EndpointInfo> finalSwaggerList = new ArrayList<>(noDupesSwagger);
-        
+
+        System.out.println("size: " + finalSwaggerList.size());
+        for (EndpointInfo info : finalSwaggerList) {
+            System.out.println(info.getPath());
+        }
+
+//        getPartialCoverage(finalSeleniumList, finalGatlingList, finalSwaggerList);
+//        getTotalCoverage(finalSeleniumList, finalGatlingList, finalSwaggerList);
+//        getNoCoverage(finalSwaggerList);
+
         String toRet = "";
         int totalEndpoints = swaggerList.size();
 
@@ -76,32 +104,52 @@ public class CoverageController {
     }
 
     @GetMapping("/getPartial")
-    public int getPartialCoverage(ArrayList<EndpointInfo> selenium, ArrayList<EndpointInfo> gatling, ArrayList<EndpointInfo> swagger) {
+    public int getPartialCoverage() {
         //if in one and not the other than increment counter\
         //can use global variable for counter to make no coverage easier
         GATLINGCOVERAGE = 0;
         SELENIUMCOVERAGE = 0;
         PARTIALCOVERAGE = 0;
+        if (testing) {
+            if (gatling == null) {
+                gatling = new ArrayList<>();
+            }
+            if (selenium == null) {
+                selenium = new ArrayList<>();
+            }
+            gatling.add(swagger.get(5));
+            gatling.add(swagger.get(6));
+            gatling.add(swagger.get(7));
+            gatling.add(swagger.get(11));
+            selenium.add(swagger.get(8));
+            selenium.add(swagger.get(9));
+            selenium.add(swagger.get(10));
+            selenium.add(swagger.get(12));
+        }
 
         /* check if the item is just in gatling */
-        for(EndpointInfo endpoint : gatling) {
-            /* if not in selenium, increment */
-            if(swagger.contains(endpoint) && !selenium.contains(endpoint)) {
-                GATLINGCOVERAGE++;
-                PARTIALCOVERAGE++;
-            } else if(swagger.contains(endpoint)) {
-                GATLINGCOVERAGE++;
+        if (gatling != null) {
+            for (EndpointInfo endpoint : gatling) {
+                /* if not in selenium, increment */
+                if (swagger != null && swagger.contains(endpoint) && selenium != null && !selenium.contains(endpoint)) {
+                    GATLINGCOVERAGE++;
+                    PARTIALCOVERAGE++;
+                } else if (swagger != null && swagger.contains(endpoint)) {
+                    GATLINGCOVERAGE++;
+                }
             }
         }
 
         /* check if the item is just in selenium */
-        for(EndpointInfo endpoint : selenium) {
-            /* if not in gatling, increment */
-            if(swagger.contains(endpoint) && !gatling.contains(endpoint)) {
-                SELENIUMCOVERAGE++;
-                PARTIALCOVERAGE++;
-            } else if(swagger.contains(endpoint)) {
-                SELENIUMCOVERAGE++;
+        if (selenium != null) {
+            for (EndpointInfo endpoint : selenium) {
+                /* if not in gatling, increment */
+                if (swagger != null && swagger.contains(endpoint) && gatling != null && !gatling.contains(endpoint)) {
+                    SELENIUMCOVERAGE++;
+                    PARTIALCOVERAGE++;
+                } else if (swagger != null && swagger.contains(endpoint)) {
+                    SELENIUMCOVERAGE++;
+                }
             }
         }
 
@@ -110,25 +158,45 @@ public class CoverageController {
     }
 
     @GetMapping("/getTotal")
-    public int getTotalCoverage(ArrayList<EndpointInfo> selenium, ArrayList<EndpointInfo> gatling, ArrayList<EndpointInfo> swagger) {
+    public int getTotalCoverage() {
         //if in both than increment counter
         //can use global variable for counter to make no coverage easier
         GATLINGCOVERAGE = 0;
         SELENIUMCOVERAGE = 0;
         TOTALCOVERAGE = 0;
 
+        if (testing) {
+            if (gatling == null) {
+                gatling = new ArrayList<>();
+            }
+            if (selenium == null) {
+                selenium = new ArrayList<>();
+            }
+            selenium.add(swagger.get(0));
+            selenium.add(swagger.get(1));
+            selenium.add(swagger.get(2));
+            selenium.add(swagger.get(3));
+
+            gatling.add(swagger.get(0));
+            gatling.add(swagger.get(1));
+            gatling.add(swagger.get(2));
+            gatling.add(swagger.get(3));
+        }
+
         /* check if the item is in both selenium and gatling list */
-        for(EndpointInfo endpointInfo : swagger) {
-            if(selenium.contains(endpointInfo) && gatling.contains(endpointInfo)) {
-                GATLINGCOVERAGE++;
-                SELENIUMCOVERAGE++;
-                TOTALCOVERAGE++;
-            }
-            if(selenium.contains(endpointInfo)) {
-                SELENIUMCOVERAGE++;
-            }
-            if(gatling.contains(endpointInfo)) {
-                GATLINGCOVERAGE++;
+        if (swagger != null) {
+            for (EndpointInfo endpointInfo : swagger) {
+                if (selenium != null && selenium.contains(endpointInfo) && gatling != null && gatling.contains(endpointInfo)) {
+                    GATLINGCOVERAGE++;
+                    SELENIUMCOVERAGE++;
+                    TOTALCOVERAGE++;
+                }
+                if (selenium != null && selenium.contains(endpointInfo)){
+                    SELENIUMCOVERAGE++;
+                }
+                if (gatling != null && gatling.contains(endpointInfo)){
+                    GATLINGCOVERAGE++;
+                }
             }
         }
 
@@ -136,7 +204,7 @@ public class CoverageController {
     }
 
     @GetMapping("/getNo")
-    public int getNoCoverage(ArrayList<EndpointInfo> swagger) {
+    public int getNoCoverage() {
         //get difference between swagger size and 2 counters
         return swagger.size() - TOTALCOVERAGE - PARTIALCOVERAGE;
     }

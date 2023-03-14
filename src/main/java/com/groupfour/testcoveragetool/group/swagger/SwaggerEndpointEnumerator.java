@@ -5,6 +5,7 @@ import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.google.common.base.Strings;
+import com.groupfour.testcoveragetool.controller.CoverageController;
 import com.groupfour.testcoveragetool.controller.EndpointInfo;
 import com.groupfour.testcoveragetool.group.APIType;
 import com.groupfour.testcoveragetool.group.selenium.DirectoryTraverser;
@@ -74,6 +75,7 @@ public class SwaggerEndpointEnumerator {
         }
 
         System.out.println("Endpoints: " + toReturn.size());
+        CoverageController.setSwagger(toReturn);
         return toReturn;
     }
 
