@@ -117,6 +117,8 @@ public class CoverageController {
             if (selenium == null) {
                 selenium = new ArrayList<>();
             }
+            selenium.clear();
+            gatling.clear();
             gatling.add(swagger.get(5));
             gatling.add(swagger.get(6));
             gatling.add(swagger.get(7));
@@ -172,6 +174,8 @@ public class CoverageController {
             if (selenium == null) {
                 selenium = new ArrayList<>();
             }
+            selenium.clear();
+            gatling.clear();
             selenium.add(swagger.get(0));
             selenium.add(swagger.get(1));
             selenium.add(swagger.get(2));
