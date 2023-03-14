@@ -206,7 +206,6 @@ public class CoverageController {
     @GetMapping("/getNo")
     public int getNoCoverage() {
         //get difference between swagger size and 2 counters
-        System.err.println("No: " + (swagger.size() - TOTALCOVERAGE - PARTIALCOVERAGE));
         return swagger.size() - TOTALCOVERAGE - PARTIALCOVERAGE;
     }
 }
