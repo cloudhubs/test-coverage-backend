@@ -1,7 +1,7 @@
 package com.groupfour.testcoveragetool.group;
 
 public enum APIType {
-    BASE,
+    BASEURL,
     GET,
     POST,
     PUT,
