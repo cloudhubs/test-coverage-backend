@@ -127,7 +127,7 @@ public class GatlingEndpointEnumerator {
                     String s;
                     while(true) {
                         try {
-                            if (!((s = br.readLine()) != null && !s.contains(BASEURL))) break;
+                            if (((s = br.readLine()) != null && !s.contains(BASEURL))) break;
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
