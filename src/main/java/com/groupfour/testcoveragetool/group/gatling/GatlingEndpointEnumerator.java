@@ -37,11 +37,6 @@ public class GatlingEndpointEnumerator {
     public static final String USER_TESTS = "UserTests";
 
     public static final int SUBIDX = 2;
-    public static final int GETPUTIDX = 6;
-    public static final int POSTIDX = 7;
-    public static final int REQUESTIDX = 14;
-    public static final int PATCHIDX = 8;
-    public static final int DELETEIDX = 9;
 
     public static void listClasses(File projectDir) throws IOException {
 
@@ -132,7 +127,7 @@ public class GatlingEndpointEnumerator {
                             e.printStackTrace();
                         }
                     }
-                    basePath = Objects.requireNonNull(s).substring(BASEURL.length() + SUBIDX, s.length() - SUBIDX);
+                    basePath = Objects.requireNonNull(s).substring(BASEURL.length() + SUBIDX, s.length());
                     EndpointInfo baseEnd = new EndpointInfo("BASEURL", basePath);
                     toReturn.add(printApiInformation(baseEnd));
 
@@ -145,41 +140,43 @@ public class GatlingEndpointEnumerator {
                             e.printStackTrace();
                         }
                         EndpointInfo endpoint = new EndpointInfo ("", "");
-                        String noTabs = curr.replace("\t", "");
+                        String noTabs = curr.trim();
+                        String[] splits = noTabs.split("\"");
+
                         /* check for get */
                         if (noTabs.contains(validEndpoints.get(0))) {
                             endpoint.setMethod("GET");
-                            endpoint.setPath(noTabs.substring(GETPUTIDX, noTabs.length() - SUBIDX - 1));
+                            endpoint.setPath(splits[1]);
                         }
 
                         /* check for post */
                         else if (noTabs.contains(validEndpoints.get(1))) {
                             endpoint.setMethod("POST");
-                            endpoint.setPath(noTabs.substring(POSTIDX, noTabs.length() - SUBIDX));
+                            endpoint.setPath(splits[1]);
                         }
 
                         /* check for put */
                         else if (noTabs.contains(validEndpoints.get(2))) {
                             endpoint.setMethod("PUT");
-                            endpoint.setPath(noTabs.substring(GETPUTIDX, noTabs.length() - SUBIDX));
+                            endpoint.setPath(splits[1]);
                         }
 
                         /* check for httpRequest*/
                         else if (noTabs.contains(validEndpoints.get(3))) {
                             endpoint.setMethod("HTTPREQUEST");
-                            endpoint.setPath(noTabs.substring(REQUESTIDX, noTabs.length() - SUBIDX));
+                            endpoint.setPath(splits[1]);
                         }
 
                         /* check for patch */
                         else if (noTabs.contains(validEndpoints.get(4))) {
                             endpoint.setMethod("PATCH");
-                            endpoint.setPath(noTabs.substring(PATCHIDX, noTabs.length() - SUBIDX));
+                            endpoint.setPath(splits[1]);
                         }
 
                         /* check for delete */
                         else if (noTabs.contains(validEndpoints.get(5))) {
                             endpoint.setMethod("DELETE");
-                            endpoint.setPath(noTabs.substring(DELETEIDX, noTabs.length() - SUBIDX));
+                            endpoint.setPath(splits[1]);
                         }
 
                         if(!endpoint.getMethod().equals("") && !endpoint.getPath().equals("")) {
@@ -262,7 +259,7 @@ public class GatlingEndpointEnumerator {
 
         /* set the API type*/
         APIType type = switch (e.getMethod()) {
-            case "BASEURL" -> APIType.BASE;
+            case "BASEURL" -> APIType.BASEURL;
             case "GET" -> APIType.GET;
             case "POST" -> APIType.POST;
             case "PUT" -> APIType.PUT;
@@ -280,7 +277,7 @@ public class GatlingEndpointEnumerator {
             //System.out.println("*ISSUE*: " + e.getMethod() + " API call found which is undefined in the scope");
         }
 
-        return new EndpointInfo(type.toString(), e.getPath());
+        return new EndpointInfo(e.getMethod(), e.getPath());
     }
 
     @Deprecated
