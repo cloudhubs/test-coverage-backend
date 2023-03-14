@@ -123,16 +123,16 @@ public class GatlingEndpointEnumerator {
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
-                    String basePath, s;
+                    String basePath;
+                    String s;
                     while(true) {
                         try {
-                            if (!((s = br.readLine()) != null && !s.contains(BASEURL))) break;
+                            if (((s = br.readLine()) != null && !s.contains(BASEURL))) break;
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        ;
                     }
-                    basePath = s.substring(BASEURL.length() + SUBIDX, s.length() - SUBIDX);
+                    basePath = Objects.requireNonNull(s).substring(BASEURL.length() + SUBIDX, s.length() - SUBIDX);
                     EndpointInfo baseEnd = new EndpointInfo("BASEURL", basePath);
                     toReturn.add(printApiInformation(baseEnd));
 
