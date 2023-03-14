@@ -35,7 +35,7 @@ public class CoverageController {
     private static ArrayList<EndpointInfo> gatling;
     private static ArrayList<EndpointInfo> selenium;
 
-    private boolean testing = true;
+    private boolean testing = false;
 
     public static void setSwagger(ArrayList<EndpointInfo> swagger) {
         CoverageController.swagger = swagger;
@@ -117,8 +117,6 @@ public class CoverageController {
             if (selenium == null) {
                 selenium = new ArrayList<>();
             }
-            selenium.clear();
-            gatling.clear();
             gatling.add(swagger.get(5));
             gatling.add(swagger.get(6));
             gatling.add(swagger.get(7));
@@ -155,6 +153,7 @@ public class CoverageController {
             }
         }
 
+        System.err.println("Partial: " + PARTIALCOVERAGE);
         /* return partial coverage */
         return PARTIALCOVERAGE;
     }
@@ -204,6 +203,8 @@ public class CoverageController {
             }
         }
 
+        System.err.println("Total: " + PARTIALCOVERAGE);
+        System.err.println("Swagger: " + swagger.size());
         return TOTALCOVERAGE;
     }
 
