@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.GET,
         RequestMethod.POST,
@@ -80,6 +81,10 @@ public class SwaggerController {
         }
          */
 
-        return SwaggerEndpointEnumerator.listApiAnnotations(file);
+        Map<String, EndpointInfo> baseEndpoints = SwaggerEndpointEnumerator.listApiAnnotations(file);
+        ArrayList<EndpointInfo> allEndpoints = new ArrayList<>(baseEndpoints.values());
+        allEndpoints.addAll(SwaggerEndpointEnumerator.listMultiEndApiAnnotations(baseEndpoints, file));
+        CoverageController.setSwagger(allEndpoints);
+        return allEndpoints;
     }
 }

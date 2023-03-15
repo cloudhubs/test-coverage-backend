@@ -63,7 +63,7 @@ public class CoverageController {
 
         ArrayList<EndpointInfo> seleniumList = new ArrayList<>(SeleniumEndpointEnumerator.listApiAnnotations(seleniumTempFile));
         ArrayList<EndpointInfo> gatlingList = new ArrayList<>(GatlingEndpointEnumerator.listApiAnnotations(gatlingTempFile));
-        ArrayList<EndpointInfo> swaggerList = new ArrayList<>(SwaggerEndpointEnumerator.listApiAnnotations(swaggerTempFile));
+        ArrayList<EndpointInfo> swaggerList = new ArrayList<>(/**SwaggerEndpointEnumerator.listApiAnnotations(swaggerTempFile)*/);
 
         //Remove duplicates from lists by changing to set and back to array list
         Set<EndpointInfo> noDupesSelenium = new LinkedHashSet<>(seleniumList);
