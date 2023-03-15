@@ -1,7 +1,9 @@
 package com.groupfour.testcoveragetool.group.swagger;
 
 import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Name;
+import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.google.common.base.Strings;
@@ -15,10 +17,7 @@ import net.lingala.zip4j.core.ZipFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class SwaggerEndpointEnumerator {
 
@@ -32,8 +31,8 @@ public class SwaggerEndpointEnumerator {
             "DeleteMapping",
             "PatchMapping"));
 
-    public static ArrayList<EndpointInfo> listApiAnnotations(File projectFile) throws IOException, ZipException {
-        ArrayList<EndpointInfo> toReturn = new ArrayList<>();
+    public static Map<String, EndpointInfo> listApiAnnotations(File projectFile) throws IOException, ZipException {
+        Map<String, EndpointInfo> toReturn = new HashMap();
 
         File toDelete = new File(USER_CODE);
         if (toDelete.isDirectory()) {
@@ -59,7 +58,60 @@ public class SwaggerEndpointEnumerator {
                         Name candidate = n.getName();
 
                         if(VALID_ENDPOINTS.contains(candidate.toString())) {
-                            toReturn.add(getCurrentEndpoint(n));
+//                            toReturn.add(getCurrentEndpoint(n));
+                            toReturn.put(file.getName(), getCurrentEndpoint(n));
+                        }
+                    }
+                }.visit(StaticJavaParser.parse(file), null);
+                //System.out.println(); // empty line
+            } catch (IOException e) {
+                new RuntimeException(e);
+            }
+        }).explore(projectDir);
+
+        if (projectDir.isDirectory()) {
+            deleteDirectory(projectDir);
+            projectDir.delete();
+        }
+
+        //System.out.println("Endpoints: " + toReturn.size());
+        return toReturn;
+    }
+
+    public static ArrayList<EndpointInfo> listMultiEndApiAnnotations(Map<String, EndpointInfo> baseEndpoints, File projectFile) throws IOException, ZipException {
+        ArrayList<EndpointInfo> toReturn = new ArrayList<>();
+
+        File toDelete = new File(USER_CODE);
+        if (toDelete.isDirectory()) {
+            deleteDirectory(toDelete);
+            toDelete.delete();
+        }
+
+        ZipFile zipFile = new ZipFile(projectFile);
+
+        zipFile.extractAll(USER_CODE);
+
+        File projectDir = new File(USER_CODE);
+
+        new DirectoryTraverser((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
+            //System.out.println(path);
+            //System.out.println(Strings.repeat("=", path.length()));
+            try {
+                new VoidVisitorAdapter<Object>() {
+                    @Override
+                    public void visit(NormalAnnotationExpr n, Object arg) {
+                        super.visit(n, arg);
+
+                        Name candidate = n.getName();
+
+                        if(VALID_ENDPOINTS.contains(candidate.toString())) {
+                            EndpointInfo current = getCurrentEndpoint(n);
+                            current.setPath(current.getPath().replace("path = ", ""));
+                            current.setPath(current.getPath().replace("value = ", ""));
+                            if (baseEndpoints.containsKey(file.getName())) {
+                                current.setPath((baseEndpoints.get(file.getName()).getPath() + "/" + current.getPath()).replace("//", "/"));
+                            }
+                            toReturn.add(current);
                         }
                     }
                 }.visit(StaticJavaParser.parse(file), null);
@@ -95,7 +147,7 @@ public class SwaggerEndpointEnumerator {
         }
     }
 
-    public static EndpointInfo getCurrentEndpoint(SingleMemberAnnotationExpr n) {
+    public static EndpointInfo getCurrentEndpoint(AnnotationExpr n) {
 
         APIType type = APIType.UNDEFINED;
 
