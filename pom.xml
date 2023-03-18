@@ -51,7 +51,25 @@
 			<groupId>co.elastic.clients</groupId>
 			<artifactId>elasticsearch-java</artifactId>
 			<version>8.6.2</version>
+			<exclusions>
+				<!-- The transitive dependency is missing a few functions. Directly import it instead -->
+				<exclusion>
+					<groupId>org.elasticsearch.client</groupId>
+					<artifactId>elasticsearch-rest-client</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch.client</groupId>
+			<artifactId>elasticsearch-rest-client</artifactId>
+			<version>8.6.2</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.json</groupId>
+			<artifactId>jakarta.json-api</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
