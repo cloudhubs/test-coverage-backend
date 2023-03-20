@@ -100,19 +100,7 @@ public class GatlingEndpointEnumerator {
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
-//                    String basePath;
-//                    String s;
-//                    while(true) {
-//                        try {
-//                            if (((s = br.readLine()) != null && !s.contains(BASEURL))) break;
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    basePath = Objects.requireNonNull(s).substring(BASEURL.length() + SUBIDX, s.length());
-//                    EndpointInfo baseEnd = new EndpointInfo("BASEURL", basePath);
-//                    toReturn.add(printApiInformation(baseEnd));
-
+                    
                     String curr = null;
 
                     while (true) {
@@ -241,7 +229,6 @@ public class GatlingEndpointEnumerator {
 
         /* set the API type*/
         APIType type = switch (e.getMethod()) {
-//            case "BASEURL" -> APIType.BASEURL;
             case "GET" -> APIType.GET;
             case "POST" -> APIType.POST;
             case "PUT" -> APIType.PUT;
