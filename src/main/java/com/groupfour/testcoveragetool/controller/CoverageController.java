@@ -36,6 +36,9 @@ public class CoverageController {
     private static ArrayList<EndpointInfo> gatling;
     private static ArrayList<EndpointInfo> selenium;
 
+    private static boolean totalDone = false;
+    private static boolean partialDone = false;
+
     private boolean testing = false;
 
     public static void setSwagger(ArrayList<EndpointInfo> swagger) {
@@ -74,15 +77,6 @@ public class CoverageController {
         ArrayList<EndpointInfo> finalSeleniumList = new ArrayList<>(noDupesSelenium);
         ArrayList<EndpointInfo> finalGatlingList = new ArrayList<>(noDupesGatling);
         ArrayList<EndpointInfo> finalSwaggerList = new ArrayList<>(noDupesSwagger);
-
-        System.out.println("size: " + finalSwaggerList.size());
-        for (EndpointInfo info : finalSwaggerList) {
-            System.out.println(info.getPath());
-        }
-
-//        getPartialCoverage(finalSeleniumList, finalGatlingList, finalSwaggerList);
-//        getTotalCoverage(finalSeleniumList, finalGatlingList, finalSwaggerList);
-//        getNoCoverage(finalSwaggerList);
 
         String toRet = "";
         int totalEndpoints = swaggerList.size();
@@ -152,10 +146,7 @@ public class CoverageController {
         if (gatlingStr != null) {
             for (String current : gatlingStr) {
                 /* if not in selenium, increment */
-//                System.out.println(current.getPath());
-//                System.out.println(swagger);
                 if (swaggerStr != null && swaggerStr.contains(current) && seleniumStr != null && !seleniumStr.contains(current)) {
-//                    System.out.println("tests");
                     GATLINGCOVERAGE++;
                     PARTIALCOVERAGE++;
                 } else if (swagger != null && swaggerStr.contains(current)) {
@@ -177,6 +168,7 @@ public class CoverageController {
             }
         }
 
+        partialDone = true;
         /* return partial coverage */
         return PARTIALCOVERAGE;
     }
@@ -243,12 +235,18 @@ public class CoverageController {
             }
         }
 
+        totalDone = true;
         return TOTALCOVERAGE;
     }
 
     @GetMapping("/getNo")
     public int getNoCoverage() {
         //get difference between swagger size and 2 counters
+        while (!totalDone || !partialDone);
+
+        totalDone = false;
+        partialDone = false;
+
         return swagger.size() - TOTALCOVERAGE - PARTIALCOVERAGE;
     }
 }

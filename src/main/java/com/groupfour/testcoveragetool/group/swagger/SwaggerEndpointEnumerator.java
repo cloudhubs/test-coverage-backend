@@ -47,8 +47,6 @@ public class SwaggerEndpointEnumerator {
         File projectDir = new File(USER_CODE);
 
         new DirectoryTraverser((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
-            //System.out.println(path);
-            //System.out.println(Strings.repeat("=", path.length()));
             try {
                 new VoidVisitorAdapter<Object>() {
                     @Override
@@ -63,7 +61,6 @@ public class SwaggerEndpointEnumerator {
                         }
                     }
                 }.visit(StaticJavaParser.parse(file), null);
-                //System.out.println(); // empty line
             } catch (IOException e) {
                 new RuntimeException(e);
             }
@@ -74,7 +71,6 @@ public class SwaggerEndpointEnumerator {
             projectDir.delete();
         }
 
-        //System.out.println("Endpoints: " + toReturn.size());
         return toReturn;
     }
 
@@ -94,8 +90,6 @@ public class SwaggerEndpointEnumerator {
         File projectDir = new File(USER_CODE);
 
         new DirectoryTraverser((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
-            //System.out.println(path);
-            //System.out.println(Strings.repeat("=", path.length()));
             try {
                 new VoidVisitorAdapter<Object>() {
                     @Override
@@ -115,7 +109,6 @@ public class SwaggerEndpointEnumerator {
                         }
                     }
                 }.visit(StaticJavaParser.parse(file), null);
-                //System.out.println(); // empty line
             } catch (IOException e) {
                 new RuntimeException(e);
             }
@@ -174,10 +167,7 @@ public class SwaggerEndpointEnumerator {
                 break;
         }
 
-        //System.out.println(type + " API call found through: " + n.getName());
         String endpointPath = n.toString().substring(n.toString().indexOf("(") + 1, n.toString().length() - 1);
-        //System.out.println(type + " " + endpointPath.replace("\"", ""));
-        //System.out.println("\t- Call using HTTP Path extension: " + endpointPath + "\n");
 
         return new EndpointInfo(type.toString(), endpointPath.replace("\"", ""));
     }
