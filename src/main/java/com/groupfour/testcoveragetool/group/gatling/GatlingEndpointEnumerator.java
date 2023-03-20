@@ -33,9 +33,8 @@ public class GatlingEndpointEnumerator {
             add(".delete(\"");
         }};
 
-    public static final String BASEURL = ".baseUrl(\"";
+    //public static final String BASEURL = ".baseUrl(\"";
     public static final String USER_TESTS = "UserTests";
-
     public static final int SUBIDX = 2;
 
     public static void listClasses(File projectDir) throws IOException {
@@ -77,23 +76,6 @@ public class GatlingEndpointEnumerator {
         ArrayList<EndpointInfo> toReturn = new ArrayList<>();
         toReturn = getInfo(projectDir);
 
-        /*
-            if(projectDir.isDirectory()) {
-            ArrayList<EndpointInfo> finalToReturn = toReturn;
-            new DirectoryTraverser((level, path, file) -> path.endsWith(".scala"), (level, path, file) -> {
-                System.out.println(path);
-                //System.out.println(Strings.repeat("=", path.length()));
-
-                ArrayList<EndpointInfo> endpointsFound = getInfo(file);
-                finalToReturn.addAll(endpointsFound);
-            }).explore(projectDir);
-            toReturn = finalToReturn;
-        }
-        else {
-            toReturn = getInfo(projectDir);
-        }
-         */
-
         if (projectDir.isDirectory()) {
             SwaggerEndpointEnumerator.deleteDirectory(projectDir);
             toDelete.delete();
@@ -118,18 +100,18 @@ public class GatlingEndpointEnumerator {
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
-                    String basePath;
-                    String s;
-                    while(true) {
-                        try {
-                            if (((s = br.readLine()) != null && !s.contains(BASEURL))) break;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    basePath = Objects.requireNonNull(s).substring(BASEURL.length() + SUBIDX, s.length());
-                    EndpointInfo baseEnd = new EndpointInfo("BASEURL", basePath);
-                    toReturn.add(printApiInformation(baseEnd));
+//                    String basePath;
+//                    String s;
+//                    while(true) {
+//                        try {
+//                            if (((s = br.readLine()) != null && !s.contains(BASEURL))) break;
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    basePath = Objects.requireNonNull(s).substring(BASEURL.length() + SUBIDX, s.length());
+//                    EndpointInfo baseEnd = new EndpointInfo("BASEURL", basePath);
+//                    toReturn.add(printApiInformation(baseEnd));
 
                     String curr = null;
 
@@ -259,7 +241,7 @@ public class GatlingEndpointEnumerator {
 
         /* set the API type*/
         APIType type = switch (e.getMethod()) {
-            case "BASEURL" -> APIType.BASEURL;
+//            case "BASEURL" -> APIType.BASEURL;
             case "GET" -> APIType.GET;
             case "POST" -> APIType.POST;
             case "PUT" -> APIType.PUT;
