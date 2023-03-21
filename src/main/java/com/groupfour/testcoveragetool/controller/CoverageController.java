@@ -36,6 +36,14 @@ public class CoverageController {
     private static ArrayList<EndpointInfo> gatling;
     private static ArrayList<EndpointInfo> selenium;
 
+    private static ArrayList<String> fullSwagger;
+    private static ArrayList<String> partialSwagger;
+    private static ArrayList<String> noSwagger;
+    private static ArrayList<String> fullGatling;
+    private static ArrayList<String> noGatling;
+    private static ArrayList<String> noSelenium;
+    private static ArrayList<String> fullSelenium;
+
     private static boolean totalDone = false;
     private static boolean partialDone = false;
 
@@ -67,7 +75,7 @@ public class CoverageController {
 
         ArrayList<EndpointInfo> seleniumList = new ArrayList<>(SeleniumEndpointEnumerator.listApiAnnotations(seleniumTempFile));
         ArrayList<EndpointInfo> gatlingList = new ArrayList<>(GatlingEndpointEnumerator.listApiAnnotations(gatlingTempFile));
-        ArrayList<EndpointInfo> swaggerList = new ArrayList<>(/**SwaggerEndpointEnumerator.listApiAnnotations(swaggerTempFile)*/);
+        ArrayList<EndpointInfo> swaggerList = new ArrayList<>();
 
         //Remove duplicates from lists by changing to set and back to array list
         Set<EndpointInfo> noDupesSelenium = new LinkedHashSet<>(seleniumList);
@@ -127,19 +135,26 @@ public class CoverageController {
         List<String> seleniumStr = new ArrayList<>();
         if (gatling != null) {
             for (EndpointInfo current : gatling) {
-                gatlingStr.add(current.getMethod() + current.getPath());
+                gatlingStr.add(current.getMethod() + " " + current.getPath());
             }
         }
         if (swagger != null) {
             for (EndpointInfo current : swagger) {
-                swaggerStr.add(current.getMethod() + current.getPath());
+                swaggerStr.add(current.getMethod() + " " + current.getPath());
             }
         }
         if (selenium != null) {
             for (EndpointInfo current : selenium) {
-                seleniumStr.add(current.getMethod() + current.getPath());
+                seleniumStr.add(current.getMethod() + " " + current.getPath());
             }
         }
+
+        noGatling = new ArrayList<>();
+        noSelenium = new ArrayList<>();
+        noSwagger = new ArrayList<>();
+        noGatling.addAll(gatlingStr);
+        noSelenium.addAll(seleniumStr);
+        noSwagger.addAll(swaggerStr);
 
         /* check if the item is just in gatling */
         //gatling.add(new EndpointInfo(swagger.get(0).getMethod(), swagger.get(0).getPath()));
@@ -148,9 +163,11 @@ public class CoverageController {
                 /* if not in selenium, increment */
                 if (swaggerStr != null && swaggerStr.contains(current) && seleniumStr != null && !seleniumStr.contains(current)) {
                     GATLINGCOVERAGE++;
+                    fullGatling.add(current);
                     PARTIALCOVERAGE++;
                 } else if (swagger != null && swaggerStr.contains(current)) {
                     GATLINGCOVERAGE++;
+                    fullGatling.add(current);
                 }
             }
         }
@@ -161,9 +178,11 @@ public class CoverageController {
                 /* if not in gatling, increment */
                 if (swaggerStr != null && swaggerStr.contains(endpoint) && gatlingStr != null && !gatlingStr.contains(endpoint)) {
                     SELENIUMCOVERAGE++;
+                    fullSelenium.add(endpoint);
                     PARTIALCOVERAGE++;
                 } else if (swaggerStr != null && swaggerStr.contains(endpoint)) {
                     SELENIUMCOVERAGE++;
+                    fullSelenium.add(endpoint);
                 }
             }
         }
@@ -248,5 +267,33 @@ public class CoverageController {
         partialDone = false;
 
         return swagger.size() - TOTALCOVERAGE - PARTIALCOVERAGE;
+    }
+
+    public static ArrayList<String> getFullSwagger() {
+        return fullSwagger;
+    }
+
+    public static ArrayList<String> getPartialSwagger() {
+        return partialSwagger;
+    }
+
+    public static ArrayList<String> getNoSwagger() {
+        return noSwagger;
+    }
+
+    public static ArrayList<String> getFullGatling() {
+        return fullGatling;
+    }
+
+    public static ArrayList<String> getNoGatling() {
+        return noGatling;
+    }
+
+    public static ArrayList<String> getNoSelenium() {
+        return noSelenium;
+    }
+
+    public static ArrayList<String> getFullSelenium() {
+        return fullSelenium;
     }
 }
