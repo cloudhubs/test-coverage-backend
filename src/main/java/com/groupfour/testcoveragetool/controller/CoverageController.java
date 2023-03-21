@@ -202,6 +202,7 @@ public class CoverageController {
         fullGatling = new ArrayList<>();
         fullSelenium = new ArrayList<>();
         fullSelenium = new ArrayList<>();
+        fullSwagger = new ArrayList<>();
         partialSwagger = new ArrayList<>();
         noGatling.addAll(gatlingStr);
         noSelenium.addAll(seleniumStr);
