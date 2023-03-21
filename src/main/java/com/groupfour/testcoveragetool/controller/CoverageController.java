@@ -51,6 +51,14 @@ public class CoverageController {
     private static boolean seleniumUncoveredWaiting = true;
     private static boolean seleniumCoveredWaiting = true;
 
+    private static boolean fullSwaggerLock = true;
+    private static boolean partialSwaggerLock = true;
+    private static boolean noSwaggerLock = true;
+    private static boolean fullGatlingLock = true;
+    private static boolean noGatlingLock = true;
+    private static boolean fullSeleniumLock = true;
+    private static boolean noSeleniumLock = true;
+
     private boolean testing = false;
 
     public static void setSwagger(ArrayList<EndpointInfo> swagger) {
@@ -250,6 +258,13 @@ public class CoverageController {
         }
 
         partialDone = true;
+        fullSwaggerLock = false;
+        partialSwaggerLock = false;
+        noSwaggerLock = false;
+        fullGatlingLock = false;
+        noGatlingLock = false;
+        fullSeleniumLock = false;
+        noSeleniumLock = false;
         /* return partial coverage */
         return PARTIALCOVERAGE;
     }
@@ -335,36 +350,64 @@ public class CoverageController {
 
     @GetMapping("/getFullSwagger")
     public static ArrayList<String> getFullSwagger() {
+        while (fullSwaggerLock);
+
+        fullSwaggerLock = true;
+
         return fullSwagger;
     }
 
     @GetMapping("/getPartialSwagger")
     public static ArrayList<String> getPartialSwagger() {
+        while (partialSwaggerLock);
+
+        partialSwaggerLock = true;
+
         return partialSwagger;
     }
 
     @GetMapping("/getNoSwagger")
     public static ArrayList<String> getNoSwagger() {
+        while (noSwaggerLock);
+
+        noSwaggerLock = true;
+
         return noSwagger;
     }
 
     @GetMapping("/getFullGatling")
     public static ArrayList<String> getFullGatling() {
+        while(fullGatlingLock);
+
+        fullGatlingLock = true;
+
         return fullGatling;
     }
 
     @GetMapping("/getNoGatling")
     public static ArrayList<String> getNoGatling() {
+        while(noGatlingLock);
+
+        noGatlingLock = true;
+
         return noGatling;
     }
 
     @GetMapping("/getNoSelenium")
     public static ArrayList<String> getNoSelenium() {
+        while(noSeleniumLock);
+
+        noSeleniumLock = true;
+
         return noSelenium;
     }
 
     @GetMapping("/getFullSelenium")
     public static ArrayList<String> getFullSelenium() {
+        while(fullSeleniumLock);
+
+        fullSeleniumLock = true;
+
         return fullSelenium;
     }
 }
