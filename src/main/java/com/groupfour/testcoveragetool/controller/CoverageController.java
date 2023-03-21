@@ -199,6 +199,10 @@ public class CoverageController {
         noGatling = new ArrayList<>();
         noSelenium = new ArrayList<>();
         noSwagger = new ArrayList<>();
+        fullGatling = new ArrayList<>();
+        fullSelenium = new ArrayList<>();
+        fullSelenium = new ArrayList<>();
+        partialSwagger = new ArrayList<>();
         noGatling.addAll(gatlingStr);
         noSelenium.addAll(seleniumStr);
         noSwagger.addAll(swaggerStr);
@@ -211,10 +215,13 @@ public class CoverageController {
                 if (swaggerStr != null && swaggerStr.contains(current) && seleniumStr != null && !seleniumStr.contains(current)) {
                     GATLINGCOVERAGE++;
                     fullGatling.add(current);
+                    noGatling.remove(current);
                     PARTIALCOVERAGE++;
+                    partialSwagger.add(current);
                 } else if (swagger != null && swaggerStr.contains(current)) {
                     GATLINGCOVERAGE++;
                     fullGatling.add(current);
+                    noGatling.remove(current);
                 }
             }
         }
@@ -226,10 +233,13 @@ public class CoverageController {
                 if (swaggerStr != null && swaggerStr.contains(endpoint) && gatlingStr != null && !gatlingStr.contains(endpoint)) {
                     SELENIUMCOVERAGE++;
                     fullSelenium.add(endpoint);
+                    noSelenium.remove(endpoint);
                     PARTIALCOVERAGE++;
+                    partialSwagger.add(endpoint);
                 } else if (swaggerStr != null && swaggerStr.contains(endpoint)) {
                     SELENIUMCOVERAGE++;
                     fullSelenium.add(endpoint);
+                    noSelenium.remove(endpoint);
                 }
             }
         }
@@ -318,30 +328,37 @@ public class CoverageController {
         return swagger.size() - TOTALCOVERAGE - PARTIALCOVERAGE;
     }
 
+    @GetMapping("/getFullSwagger")
     public static ArrayList<String> getFullSwagger() {
         return fullSwagger;
     }
 
+    @GetMapping("/getPartialSwagger")
     public static ArrayList<String> getPartialSwagger() {
         return partialSwagger;
     }
 
+    @GetMapping("/getNoSwagger")
     public static ArrayList<String> getNoSwagger() {
         return noSwagger;
     }
 
+    @GetMapping("/getFullGatling")
     public static ArrayList<String> getFullGatling() {
         return fullGatling;
     }
 
+    @GetMapping("/getNoGatling")
     public static ArrayList<String> getNoGatling() {
         return noGatling;
     }
 
+    @GetMapping("/getNoSelenium")
     public static ArrayList<String> getNoSelenium() {
         return noSelenium;
     }
 
+    @GetMapping("/getFullSelenium")
     public static ArrayList<String> getFullSelenium() {
         return fullSelenium;
     }
