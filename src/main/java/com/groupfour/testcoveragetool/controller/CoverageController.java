@@ -38,6 +38,10 @@ public class CoverageController {
 
     private static boolean totalDone = false;
     private static boolean partialDone = false;
+    private static boolean gatlingCoveredWaiting = true;
+    private static boolean gatlingUncoveredWaiting = true;
+    private static boolean seleniumUncoveredWaiting = true;
+    private static boolean seleniumCoveredWaiting = true;
 
     private boolean testing = false;
 
@@ -47,10 +51,53 @@ public class CoverageController {
 
     public static void setGatling(ArrayList<EndpointInfo> gatling) {
         CoverageController.gatling = gatling;
+        System.err.println("Gatling reset");
+        GATLINGCOVERAGE = 0;
+    }
+
+    @GetMapping("/getGatlingCovered")
+    public int getGatlingCovered() {
+        while (gatlingCoveredWaiting);
+
+        gatlingCoveredWaiting = true;
+
+        System.err.println("Gatling covered: " + GATLINGCOVERAGE);
+        return GATLINGCOVERAGE;
+    }
+
+    @GetMapping("/getGatlingUncovered")
+    public int getGatlingUncovered() {
+        while (gatlingUncoveredWaiting);
+
+        gatlingUncoveredWaiting = true;
+
+        System.err.println("Gatling uncovered");
+        return swagger.size() - GATLINGCOVERAGE;
     }
 
     public static void setSelenium(ArrayList<EndpointInfo> selenium) {
         CoverageController.selenium = selenium;
+        SELENIUMCOVERAGE = 0;
+    }
+
+    @GetMapping("/getSeleniumCovered")
+    public int getSeleniumCovered() {
+        while (seleniumCoveredWaiting);
+
+        System.err.println("Selenium covered");
+        seleniumCoveredWaiting = true;
+
+        return SELENIUMCOVERAGE;
+    }
+
+    @GetMapping("/getSeleniumUncovered")
+    public int getSeleniumUncovered() {
+        while (seleniumUncoveredWaiting);
+
+        System.err.println("Selenium uncovered");
+        seleniumUncoveredWaiting = true;
+
+        return swagger.size() - SELENIUMCOVERAGE;
     }
 
     @PostMapping("/getCoverage")
@@ -102,9 +149,9 @@ public class CoverageController {
     public int getPartialCoverage() {
         //if in one and not the other than increment counter\
         //can use global variable for counter to make no coverage easier
+        PARTIALCOVERAGE = 0;
         GATLINGCOVERAGE = 0;
         SELENIUMCOVERAGE = 0;
-        PARTIALCOVERAGE = 0;
         if (testing) {
             if (gatling == null) {
                 gatling = new ArrayList<>();
@@ -177,9 +224,9 @@ public class CoverageController {
     public int getTotalCoverage() {
         //if in both than increment counter
         //can use global variable for counter to make no coverage easier
-        GATLINGCOVERAGE = 0;
-        SELENIUMCOVERAGE = 0;
         TOTALCOVERAGE = 0;
+//        GATLINGCOVERAGE = 0;
+//        SELENIUMCOVERAGE = 0;
 
         if (testing) {
             if (gatling == null) {
@@ -222,15 +269,13 @@ public class CoverageController {
         if (swaggerStr != null) {
             for (String endpointInfo : swaggerStr) {
                 if (seleniumStr != null && seleniumStr.contains(endpointInfo) && gatlingStr != null && gatlingStr.contains(endpointInfo)) {
-                    GATLINGCOVERAGE++;
-                    SELENIUMCOVERAGE++;
+//                    GATLINGCOVERAGE++;
+//                    SELENIUMCOVERAGE++;
                     TOTALCOVERAGE++;
-                }
-                if (seleniumStr != null && seleniumStr.contains(endpointInfo)){
-                    SELENIUMCOVERAGE++;
-                }
-                if (gatlingStr != null && gatlingStr.contains(endpointInfo)){
-                    GATLINGCOVERAGE++;
+                } else if (seleniumStr != null && seleniumStr.contains(endpointInfo)){
+//                    SELENIUMCOVERAGE++;
+                } else if (gatlingStr != null && gatlingStr.contains(endpointInfo)){
+//                    GATLINGCOVERAGE++;
                 }
             }
         }
@@ -244,6 +289,10 @@ public class CoverageController {
         //get difference between swagger size and 2 counters
         while (!totalDone || !partialDone);
 
+        seleniumCoveredWaiting = false;
+        seleniumUncoveredWaiting = false;
+        gatlingUncoveredWaiting = false;
+        gatlingCoveredWaiting = false;
         totalDone = false;
         partialDone = false;
 
