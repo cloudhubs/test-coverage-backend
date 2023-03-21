@@ -218,10 +218,13 @@ public class CoverageController {
                     noGatling.remove(current);
                     PARTIALCOVERAGE++;
                     partialSwagger.add(current);
+                    noSwagger.remove(current);
                 } else if (swagger != null && swaggerStr.contains(current)) {
                     GATLINGCOVERAGE++;
                     fullGatling.add(current);
                     noGatling.remove(current);
+                    fullSwagger.add(current);
+                    noSwagger.remove(current);
                 }
             }
         }
@@ -236,6 +239,7 @@ public class CoverageController {
                     noSelenium.remove(endpoint);
                     PARTIALCOVERAGE++;
                     partialSwagger.add(endpoint);
+                    noSwagger.remove(endpoint);
                 } else if (swaggerStr != null && swaggerStr.contains(endpoint)) {
                     SELENIUMCOVERAGE++;
                     fullSelenium.add(endpoint);
