@@ -34,6 +34,7 @@ public class ElasticSearchReader {
 	}
 
 
+	@SuppressWarnings("deprecation")
 	public static void getLogs(Date start, Date stop) throws IOException {
 		String startStr = dateFormat.format(start);
 		String stopStr = dateFormat.format(stop);
