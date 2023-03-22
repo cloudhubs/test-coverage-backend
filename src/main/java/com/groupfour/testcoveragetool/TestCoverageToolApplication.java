@@ -26,11 +26,11 @@ public class TestCoverageToolApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(TestCoverageToolApplication.class, args);
 
-		try {
-			LogReader.elasticServiceThing();
-		} catch (IOException | JSONException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			LogReader.elasticServiceThing();
+//		} catch (IOException | JSONException e) {
+//			e.printStackTrace();
+//		}
 
 	}
 
