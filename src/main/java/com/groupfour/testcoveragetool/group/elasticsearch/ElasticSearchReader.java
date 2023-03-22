@@ -3,6 +3,7 @@ package com.groupfour.testcoveragetool.group.elasticsearch;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -20,11 +21,22 @@ public class ElasticSearchReader {
 
 	public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-	public static void getLogsInTimeRange(Date startTime, Date stopTime) throws IOException, ParseException {
+	public static void main(String[] args) throws ParseException, IOException, InterruptedException {
+
+		//Date start = dateFormat.parse("2023-03-22T18:21:00.000Z"); //start time to query
+		//Date stop = dateFormat.parse("2023-03-22T18:59:59.999Z"); //stop time to query
+		Date start = Date.from(Instant.now());
+		
+		Thread.sleep(5000);
+		
+		Date stop = Date.from(Instant.now());
+		
+		getLogsInTimeRange(start, stop);
+	}
+	
+	public static void getLogsInTimeRange(Date start, Date stop) throws IOException, ParseException {
 		init(); //refactor eventually
 
-		Date start = dateFormat.parse("2023-03-22T18:21:00.000Z"); //start time to query
-		Date stop = dateFormat.parse("2023-03-22T18:59:59.999Z"); //stop time to query
 
 		getLogs(start, stop);
 	}
