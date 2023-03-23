@@ -213,7 +213,7 @@ public class CoverageController {
                 }
             } else {
                 for (String g : gatlingStr) {
-                    if (g.contains(current.subEndpoint())) {
+                    if (g.contains(current.subEndpoint()) && noGatling.contains(endpoint)) {
 //                        System.out.println(g + " contains " + current.getEndpoint());
                         boolean sel = false;
 
@@ -267,7 +267,7 @@ public class CoverageController {
             String endpoint = current.getEndpoint();
 
             if (current.getParameters() == 0) {
-                if (seleniumStr.contains(endpoint) && !gatlingStr.contains(endpoint)) {
+                if (seleniumStr.contains(endpoint) && !noGatling.contains(endpoint)) {
                     SELENIUMCOVERAGE++;
                     fullSelenium.add(endpoint);
                     noSelenium.remove(endpoint);
@@ -283,7 +283,7 @@ public class CoverageController {
                 }
             } else {
                 for (String s : seleniumStr) {
-                    if (s.contains(current.subEndpoint())) {
+                    if (s.contains(current.subEndpoint()) && seleniumStr.contains(endpoint)) {
 //                        System.out.println(g + " contains " + current.getEndpoint());
                         boolean gat = false;
 
