@@ -58,6 +58,7 @@ public class CoverageController {
     private static boolean noGatlingLock = true;
     private static boolean fullSeleniumLock = true;
     private static boolean noSeleniumLock = true;
+    private static boolean totalLock = true;
 
     public static void setSwagger(ArrayList<EndpointInfo> swagger) {
         CoverageController.swagger = swagger;
@@ -205,6 +206,7 @@ public class CoverageController {
                     partialSwagger.add(endpoint);
                     noSwagger.remove(endpoint);
                 } else if (gatlingStr.contains(endpoint)) {
+                    TOTALCOVERAGE++;
                     GATLINGCOVERAGE++;
                     fullGatling.add(endpoint);
                     noGatling.remove(endpoint);
@@ -214,7 +216,6 @@ public class CoverageController {
             } else {
                 for (String g : gatlingStr) {
                     if (g.contains(current.subEndpoint()) && noGatling.contains(endpoint)) {
-//                        System.out.println(g + " contains " + current.getEndpoint());
                         boolean sel = false;
 
                         for (String s : seleniumStr) {
@@ -228,6 +229,7 @@ public class CoverageController {
                         noGatling.remove(endpoint);
                         if (sel) {
                             fullSwagger.add(endpoint);
+                            TOTALCOVERAGE++;
                         } else {
                             PARTIALCOVERAGE++;
                             partialSwagger.add(endpoint);
@@ -237,31 +239,6 @@ public class CoverageController {
                 }
             }
         }
-
-        /* check if the item is just in gatling */
-        //gatling.add(new EndpointInfo(swagger.get(0).getMethod(), swagger.get(0).getPath()));
-
-        /*
-        if (gatlingStr != null) {
-            for (String current : gatlingStr) {
-                // if not in selenium, increment
-                if (swaggerStr != null && swaggerStr.contains(current) && seleniumStr != null && !seleniumStr.contains(current)) {
-                    GATLINGCOVERAGE++;
-                    fullGatling.add(current);
-                    noGatling.remove(current);
-                    PARTIALCOVERAGE++;
-                    partialSwagger.add(current);
-                    noSwagger.remove(current);
-                } else if (swagger != null && swaggerStr.contains(current)) {
-                    GATLINGCOVERAGE++;
-                    fullGatling.add(current);
-                    noGatling.remove(current);
-                    fullSwagger.add(current);
-                    noSwagger.remove(current);
-                }
-            }
-        }
-         */
 
         for (EndpointInfo current : swagger) {
             String endpoint = current.getEndpoint();
@@ -284,7 +261,6 @@ public class CoverageController {
             } else {
                 for (String s : seleniumStr) {
                     if (s.contains(current.subEndpoint()) && seleniumStr.contains(endpoint)) {
-//                        System.out.println(g + " contains " + current.getEndpoint());
                         boolean gat = false;
 
                         for (String g : gatlingStr) {
@@ -308,27 +284,6 @@ public class CoverageController {
             }
         }
 
-        // check if the item is just in selenium
-        /*
-        if (seleniumStr != null) {
-            for (String endpoint : seleniumStr) {
-                // if not in gatling, increment
-                if (swaggerStr != null && swaggerStr.contains(endpoint) && gatlingStr != null && !gatlingStr.contains(endpoint)) {
-                    SELENIUMCOVERAGE++;
-                    fullSelenium.add(endpoint);
-                    noSelenium.remove(endpoint);
-                    PARTIALCOVERAGE++;
-                    partialSwagger.add(endpoint);
-                    noSwagger.remove(endpoint);
-                } else if (swaggerStr != null && swaggerStr.contains(endpoint)) {
-                    SELENIUMCOVERAGE++;
-                    fullSelenium.add(endpoint);
-                    noSelenium.remove(endpoint);
-                }
-            }
-        }
-        */
-
         partialDone = true;
         fullSwaggerLock = false;
         partialSwaggerLock = false;
@@ -337,52 +292,17 @@ public class CoverageController {
         noGatlingLock = false;
         fullSeleniumLock = false;
         noSeleniumLock = false;
+        totalLock = false;
         /* return partial coverage */
         return PARTIALCOVERAGE;
     }
 
     @GetMapping("/getTotal")
     public int getTotalCoverage() {
-        //if in both than increment counter
-        //can use global variable for counter to make no coverage easier
-        TOTALCOVERAGE = 0;
-//        GATLINGCOVERAGE = 0;
-//        SELENIUMCOVERAGE = 0;
-        
-        List<String> gatlingStr = new ArrayList<>();
-        List<String> swaggerStr = new ArrayList<>();
-        List<String> seleniumStr = new ArrayList<>();
-        if (gatling != null) {
-            for (EndpointInfo current : gatling) {
-                gatlingStr.add(current.getMethod() + current.getPath());
-            }
-        }
-        if (swagger != null) {
-            for (EndpointInfo current : swagger) {
-                swaggerStr.add(current.getMethod() + current.getPath());
-            }
-        }
-        if (selenium != null) {
-            for (EndpointInfo current : selenium) {
-                seleniumStr.add(current.getMethod() + current.getPath());
-            }
-        }
 
-        /* check if the item is in both selenium and gatling list */
-        if (swaggerStr != null) {
-            for (String endpointInfo : swaggerStr) {
-                if (seleniumStr != null && seleniumStr.contains(endpointInfo) && gatlingStr != null && gatlingStr.contains(endpointInfo)) {
-//                    GATLINGCOVERAGE++;
-//                    SELENIUMCOVERAGE++;
-                    TOTALCOVERAGE++;
-                } else if (seleniumStr != null && seleniumStr.contains(endpointInfo)){
-//                    SELENIUMCOVERAGE++;
-                } else if (gatlingStr != null && gatlingStr.contains(endpointInfo)){
-//                    GATLINGCOVERAGE++;
-                }
-            }
-        }
+        while (totalLock);
 
+        totalLock = true;
         totalDone = true;
         return TOTALCOVERAGE;
     }
