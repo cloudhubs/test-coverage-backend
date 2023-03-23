@@ -6,10 +6,25 @@ public class EndpointInfo {
 
     private String method;
     private String path;
+    private int parameters;
+
+    private static final char BRACKET = '{';
 
     public EndpointInfo(String method, String path) {
         this.method = method;
         this.path = path;
+        this.parameters = 0;
+        for (int i = 0; i < path.length(); i++) {
+            if (path.charAt(i) == BRACKET) {
+                this.parameters++;
+            }
+        }
+    }
+
+    public EndpointInfo(String method, String path, int parameters) {
+        this.method = method;
+        this.path = path;
+        this.parameters = parameters;
     }
 
     public String getMethod() {
@@ -24,8 +39,31 @@ public class EndpointInfo {
         return path;
     }
 
+    public String getEndpoint() {
+        return this.method + " " + this.path;
+    }
+
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public int getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(int parameters) {
+        this.parameters = parameters;
+    }
+
+    public String subEndpoint() {
+        String ret = this.method + " " + this.path;
+
+        int index = ret.indexOf("{");
+        if (index != -1) {
+            ret = ret.substring(0, index);
+        }
+
+        return ret;
     }
 
     @Override
