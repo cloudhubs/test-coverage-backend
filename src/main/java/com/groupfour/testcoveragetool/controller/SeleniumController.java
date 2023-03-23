@@ -23,7 +23,6 @@ public class SeleniumController {
     	File tempFile = File.createTempFile("temp-", file.getOriginalFilename());
         file.transferTo(tempFile);
 		
-    	System.out.println("Got the file");
         ArrayList<EndpointInfo> list =  new ArrayList<EndpointInfo>(SeleniumEndpointEnumerator.listApiAnnotations(tempFile));
         String toRet = "";
         for(EndpointInfo e:list) {

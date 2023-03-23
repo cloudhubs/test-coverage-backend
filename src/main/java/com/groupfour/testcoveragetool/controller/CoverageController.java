@@ -59,15 +59,12 @@ public class CoverageController {
     private static boolean fullSeleniumLock = true;
     private static boolean noSeleniumLock = true;
 
-    private boolean testing = false;
-
     public static void setSwagger(ArrayList<EndpointInfo> swagger) {
         CoverageController.swagger = swagger;
     }
 
     public static void setGatling(ArrayList<EndpointInfo> gatling) {
         CoverageController.gatling = gatling;
-        System.err.println("Gatling reset");
         GATLINGCOVERAGE = 0;
     }
 
@@ -77,7 +74,6 @@ public class CoverageController {
 
         gatlingCoveredWaiting = true;
 
-        System.err.println("Gatling covered: " + GATLINGCOVERAGE);
         return GATLINGCOVERAGE;
     }
 
@@ -87,7 +83,6 @@ public class CoverageController {
 
         gatlingUncoveredWaiting = true;
 
-        System.err.println("Gatling uncovered");
         return swagger.size() - GATLINGCOVERAGE;
     }
 
@@ -100,7 +95,6 @@ public class CoverageController {
     public int getSeleniumCovered() {
         while (seleniumCoveredWaiting);
 
-        System.err.println("Selenium covered");
         seleniumCoveredWaiting = true;
 
         return SELENIUMCOVERAGE;
@@ -110,7 +104,6 @@ public class CoverageController {
     public int getSeleniumUncovered() {
         while (seleniumUncoveredWaiting);
 
-        System.err.println("Selenium uncovered");
         seleniumUncoveredWaiting = true;
 
         return swagger.size() - SELENIUMCOVERAGE;
@@ -168,22 +161,6 @@ public class CoverageController {
         PARTIALCOVERAGE = 0;
         GATLINGCOVERAGE = 0;
         SELENIUMCOVERAGE = 0;
-        if (testing) {
-            if (gatling == null) {
-                gatling = new ArrayList<>();
-            }
-            if (selenium == null) {
-                selenium = new ArrayList<>();
-            }
-            gatling.add(swagger.get(5));
-            gatling.add(swagger.get(6));
-            gatling.add(swagger.get(7));
-            gatling.add(swagger.get(11));
-            selenium.add(swagger.get(8));
-            selenium.add(swagger.get(9));
-            selenium.add(swagger.get(10));
-            selenium.add(swagger.get(12));
-        }
 
         List<String> gatlingStr = new ArrayList<>();
         List<String> swaggerStr = new ArrayList<>();
@@ -216,11 +193,58 @@ public class CoverageController {
         noSelenium.addAll(swaggerStr);
         noSwagger.addAll(swaggerStr);
 
+        for (EndpointInfo current : swagger) {
+            String endpoint = current.getEndpoint();
+
+            if (current.getParameters() == 0) {
+                if (gatlingStr.contains(endpoint) && !seleniumStr.contains(endpoint)) {
+                    GATLINGCOVERAGE++;
+                    fullGatling.add(endpoint);
+                    noGatling.remove(endpoint);
+                    PARTIALCOVERAGE++;
+                    partialSwagger.add(endpoint);
+                    noSwagger.remove(endpoint);
+                } else if (gatlingStr.contains(endpoint)) {
+                    GATLINGCOVERAGE++;
+                    fullGatling.add(endpoint);
+                    noGatling.remove(endpoint);
+                    fullSwagger.add(endpoint);
+                    noSwagger.remove(endpoint);
+                }
+            } else {
+                for (String g : gatlingStr) {
+                    if (g.contains(current.subEndpoint())) {
+//                        System.out.println(g + " contains " + current.getEndpoint());
+                        boolean sel = false;
+
+                        for (String s : seleniumStr) {
+                            if (s.contains(current.subEndpoint())) {
+                                sel = true;
+                            }
+                        }
+
+                        GATLINGCOVERAGE++;
+                        fullGatling.add(g);
+                        noGatling.remove(endpoint);
+                        if (sel) {
+                            fullSwagger.add(endpoint);
+                        } else {
+                            PARTIALCOVERAGE++;
+                            partialSwagger.add(endpoint);
+                        }
+                        noSwagger.remove(endpoint);
+                    }
+                }
+            }
+        }
+
         /* check if the item is just in gatling */
         //gatling.add(new EndpointInfo(swagger.get(0).getMethod(), swagger.get(0).getPath()));
+
+        /*
         if (gatlingStr != null) {
             for (String current : gatlingStr) {
-                /* if not in selenium, increment */
+                // if not in selenium, increment
                 if (swaggerStr != null && swaggerStr.contains(current) && seleniumStr != null && !seleniumStr.contains(current)) {
                     GATLINGCOVERAGE++;
                     fullGatling.add(current);
@@ -237,11 +261,58 @@ public class CoverageController {
                 }
             }
         }
+         */
 
-        /* check if the item is just in selenium */
+        for (EndpointInfo current : swagger) {
+            String endpoint = current.getEndpoint();
+
+            if (current.getParameters() == 0) {
+                if (seleniumStr.contains(endpoint) && !gatlingStr.contains(endpoint)) {
+                    SELENIUMCOVERAGE++;
+                    fullSelenium.add(endpoint);
+                    noSelenium.remove(endpoint);
+                    PARTIALCOVERAGE++;
+                    partialSwagger.add(endpoint);
+                    noSwagger.remove(endpoint);
+                } else if (seleniumStr.contains(endpoint)) {
+                    SELENIUMCOVERAGE++;
+                    fullSelenium.add(endpoint);
+                    noSelenium.remove(endpoint);
+                    fullSwagger.add(endpoint);
+                    noSwagger.remove(endpoint);
+                }
+            } else {
+                for (String s : seleniumStr) {
+                    if (s.contains(current.subEndpoint())) {
+//                        System.out.println(g + " contains " + current.getEndpoint());
+                        boolean gat = false;
+
+                        for (String g : gatlingStr) {
+                            if (g.contains(current.subEndpoint())) {
+                                gat = true;
+                            }
+                        }
+
+                        SELENIUMCOVERAGE++;
+                        fullSelenium.add(s);
+                        noSelenium.remove(endpoint);
+                        if (gat) {
+                            fullSwagger.add(endpoint);
+                        } else {
+                            PARTIALCOVERAGE++;
+                            partialSwagger.add(endpoint);
+                        }
+                        noSwagger.remove(endpoint);
+                    }
+                }
+            }
+        }
+
+        // check if the item is just in selenium
+        /*
         if (seleniumStr != null) {
             for (String endpoint : seleniumStr) {
-                /* if not in gatling, increment */
+                // if not in gatling, increment
                 if (swaggerStr != null && swaggerStr.contains(endpoint) && gatlingStr != null && !gatlingStr.contains(endpoint)) {
                     SELENIUMCOVERAGE++;
                     fullSelenium.add(endpoint);
@@ -256,6 +327,7 @@ public class CoverageController {
                 }
             }
         }
+        */
 
         partialDone = true;
         fullSwaggerLock = false;
@@ -276,25 +348,7 @@ public class CoverageController {
         TOTALCOVERAGE = 0;
 //        GATLINGCOVERAGE = 0;
 //        SELENIUMCOVERAGE = 0;
-
-        if (testing) {
-            if (gatling == null) {
-                gatling = new ArrayList<>();
-            }
-            if (selenium == null) {
-                selenium = new ArrayList<>();
-            }
-            selenium.add(swagger.get(0));
-            selenium.add(swagger.get(1));
-            selenium.add(swagger.get(2));
-            selenium.add(swagger.get(3));
-
-            gatling.add(swagger.get(0));
-            gatling.add(swagger.get(1));
-            gatling.add(swagger.get(2));
-            gatling.add(swagger.get(3));
-        }
-
+        
         List<String> gatlingStr = new ArrayList<>();
         List<String> swaggerStr = new ArrayList<>();
         List<String> seleniumStr = new ArrayList<>();
