@@ -204,7 +204,7 @@ public class SeleniumEndpointEnumerator {
     }
 
     @Deprecated
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ZipException {
         File projectDir = new File("./../../SeleniumSample");
         //listClasses(projectDir);
         listApiAnnotations(projectDir);
