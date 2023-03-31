@@ -1,6 +1,7 @@
 package com.groupfour.testcoveragetool.controller;
 
 import com.groupfour.testcoveragetool.group.selenium.SeleniumEndpointEnumerator;
+import net.lingala.zip4j.exception.ZipException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +19,7 @@ public class SeleniumController {
     ConcurrentMap<String, Extractable> extractables = new ConcurrentHashMap<>();
 
     @PostMapping("/getAll")
-    public String getAll(@RequestParam("file") MultipartFile file) throws IOException {
+    public String getAll(@RequestParam("file") MultipartFile file) throws IOException, ZipException {
     	
     	File tempFile = File.createTempFile("temp-", file.getOriginalFilename());
         file.transferTo(tempFile);
