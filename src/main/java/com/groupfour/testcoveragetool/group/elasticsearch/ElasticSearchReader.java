@@ -54,17 +54,17 @@ public class ElasticSearchReader {
 		return this;
 	}
 	
-	public List<String> getLogsInTimeRange(Date start, Date stop) throws IOException, ParseException {
-		return getLogs(start, stop);
+	public List<String> getLogsInTimeRange(Date start, Date stop, String field, List<String> regexList) throws IOException, ParseException {
+		return getLogs(start, stop, field, regexList);
 	}
 	
-	public List<String> getEndpointsHit(Date from, Date to) throws IOException, ParseException {
-		List<String> logs = getLogsInTimeRange(from, to);
+	public List<String> getEndpointsHit(Date from, Date to, String field, List<String> regexList) throws IOException, ParseException {
+		List<String> logs = getLogsInTimeRange(from, to, field, regexList);
 		return getEndpointsFromLogs(logs);
 	}
 
 	@SuppressWarnings("deprecation")
-	private List<String> getLogs(Date start, Date stop) throws IOException {
+	private List<String> getLogs(Date start, Date stop, String field, List<String> regexList) throws IOException {
 		List<String> restLogs = new ArrayList<String>();
 		String startStr = dateFormat.format(start);
 		String stopStr = dateFormat.format(stop);

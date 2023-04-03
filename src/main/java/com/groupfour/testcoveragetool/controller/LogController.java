@@ -26,7 +26,7 @@ public class LogController {
 	private boolean regexListLock = true;
 
 	@GetMapping("/endpoints")
-	public List<String> getAllEndpoints() {
+	public List<String> getAllEndpoints() throws IOException, ParseException {
 		while (this.fieldLock || this.regexListLock);
 
 		this.fieldLock = true;
@@ -37,10 +37,15 @@ public class LogController {
 		/* Maybe we want to make a test class where we pass the test file, and just call a method to run it and return the enpoints??? */
 		//for all tests
 			//start timer
+			Date start = null;
+			
 			//run test
-			//stop timer
-			//append result of call to parseLogsForEndpoints
 		
+			//stop timer
+			Date stop = null;
+			
+			//append result of call to parseLogsForEndpoints
+			parseLogsForEndpoints(start, stop);
 		
 		return endpointsTested;
 	}
@@ -63,9 +68,6 @@ public class LogController {
 	
 	
 	private List<String> parseLogsForEndpoints(Date from, Date to) throws IOException, ParseException {
-		String start = "2023-03-22T18:21:00.000Z"; //start time to query
-		String stop = "2023-03-22T18:59:59.999Z";
-		
-		return logReader.getEndpointsHit(from, to);
+		return logReader.getEndpointsHit(from, to, field, regexList);
 	}
 }
