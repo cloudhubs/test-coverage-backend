@@ -38,11 +38,13 @@ public class LogController {
 	}
 
 	@PostMapping("/field")
+	@ResponseBody
 	public void getField(@RequestParam String field) {
 		this.field = field;
 	}
 
 	@PostMapping("/regexList")
+	@ResponseBody
 	public void getRegexList(@RequestParam List<String> regexList) {
 		this.regexList.addAll(regexList);
 	}
