@@ -19,6 +19,8 @@ import com.groupfour.testcoveragetool.group.elasticsearch.ElasticSearchReader;
 @RequestMapping("/requests/logs")
 public class LogController {
 	private ElasticSearchReader logReader = new ElasticSearchReader();
+	private String field;
+	private List<String> regexList;
 	
 	@GetMapping("/endpoints")
 	public List<String> getAllEndpoints() {
@@ -33,6 +35,16 @@ public class LogController {
 		
 		
 		return endpointsTested;
+	}
+
+	@PostMapping("/field")
+	public void getField(@RequestParam String field) {
+		this.field = field;
+	}
+
+	@PostMapping("/regexList")
+	public void getRegexList(@RequestParam List<String> regexList) {
+		this.regexList.addAll(regexList);
 	}
 	
 	
