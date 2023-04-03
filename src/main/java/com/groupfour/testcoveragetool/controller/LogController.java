@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,7 @@ public class LogController {
 		this.fieldLock = true;
 		this.regexListLock = true;
 
-		List<String> endpointsTested = null;
+		HashSet<String> endpointsTested = null;
 		
 		/* Maybe we want to make a test class where we pass the test file, and just call a method to run it and return the enpoints??? */
 		//for all tests
@@ -47,7 +48,7 @@ public class LogController {
 			//append result of call to parseLogsForEndpoints
 			parseLogsForEndpoints(start, stop);
 		
-		return endpointsTested;
+		return new ArrayList<String>(endpointsTested);
 	}
 
 	@PostMapping("/field")
@@ -67,7 +68,7 @@ public class LogController {
 	}
 	
 	
-	private List<String> parseLogsForEndpoints(Date from, Date to) throws IOException, ParseException {
+	private HashSet<String> parseLogsForEndpoints(Date from, Date to) throws IOException, ParseException {
 		return logReader.getEndpointsHit(from, to, field, regexList);
 	}
 }

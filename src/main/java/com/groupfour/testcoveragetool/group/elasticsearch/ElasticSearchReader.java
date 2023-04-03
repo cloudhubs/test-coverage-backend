@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -55,16 +56,21 @@ public class ElasticSearchReader {
 	}
 	
 	public List<String> getLogsInTimeRange(Date start, Date stop, String field, List<String> regexList) throws IOException, ParseException {
-		return getLogs(start, stop, field, regexList);
+		List<String> logs = new ArrayList<String>();
+		for(String regex:regexList) {
+			logs.addAll(getLogs(start, stop, field, regex));
+		}
+		
+		return logs;
 	}
 	
-	public List<String> getEndpointsHit(Date from, Date to, String field, List<String> regexList) throws IOException, ParseException {
+	public HashSet<String> getEndpointsHit(Date from, Date to, String field, List<String> regexList) throws IOException, ParseException {
 		List<String> logs = getLogsInTimeRange(from, to, field, regexList);
 		return getEndpointsFromLogs(logs);
 	}
 
 	@SuppressWarnings("deprecation")
-	private List<String> getLogs(Date start, Date stop, String field, List<String> regexList) throws IOException {
+	private List<String> getLogs(Date start, Date stop, String field, String regex) throws IOException {
 		List<String> restLogs = new ArrayList<String>();
 		String startStr = dateFormat.format(start);
 		String stopStr = dateFormat.format(stop);
@@ -74,7 +80,8 @@ public class ElasticSearchReader {
 				.must(QueryBuilders.rangeQuery("@timestamp") //query based on timestamp
 						.gte(startStr) //get all greater than
 						.lte(stopStr)) //get all less than
-				.must(QueryBuilders.queryStringQuery("*GET* OR *POST* OR *PUT* OR *DELETE*").field("message")) //get all that contain GET, PUT, POST, etc.
+				//.must(QueryBuilders.queryStringQuery("*GET* OR *POST* OR *PUT* OR *DELETE*").field(field)) //get all that contain GET, PUT, POST, etc.
+				.must(QueryBuilders.regexpQuery(field, regex))
 		);
 
 		//retrieve the maximum number of logs
@@ -107,8 +114,8 @@ public class ElasticSearchReader {
 		return restLogs;
 	}
 	
-	public List<String> getEndpointsFromLogs(List<String> logs) {
-		List<String> endpoints = new ArrayList<String>();
+	public HashSet<String> getEndpointsFromLogs(List<String> logs) {
+		HashSet<String> endpoints = new HashSet<String>();
 		
 		for(String log:logs) {
 			String endpoint = extractEndpoint(log);
