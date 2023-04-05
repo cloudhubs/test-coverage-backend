@@ -6,11 +6,11 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.google.common.base.Strings;
 import com.groupfour.testcoveragetool.controller.CoverageController;
 import com.groupfour.testcoveragetool.controller.EndpointInfo;
+import com.groupfour.testcoveragetool.controller.TimeBounds;
 import com.groupfour.testcoveragetool.group.APIType;
 import com.groupfour.testcoveragetool.group.swagger.SwaggerEndpointEnumerator;
 import net.lingala.zip4j.core.ZipFile;
@@ -18,11 +18,7 @@ import net.lingala.zip4j.core.ZipFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 import net.lingala.zip4j.exception.ZipException;
@@ -67,7 +63,7 @@ public class SeleniumEndpointEnumerator {
         }).explore(projectDir);
     }
 
-    public static ArrayList<EndpointInfo> listApiAnnotations(File projectFile) throws IOException, ZipException {
+    public static ArrayList<TimeBounds> seleniumTestRunner(File projectFile) throws IOException, ZipException {
 
         File toDelete = new File(USER_TESTS);
         if (toDelete.isDirectory()) {
@@ -95,7 +91,7 @@ public class SeleniumEndpointEnumerator {
 
 
         //This will contain the list of endpoints after the tests are run and the logs are extracted
-        ArrayList<EndpointInfo> toReturn = new ArrayList<>();
+        //ArrayList<EndpointInfo> toReturn = new ArrayList<>();
 
         //Selenium WebDriver instance
         System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");     //I still dont know what this does
@@ -120,9 +116,13 @@ public class SeleniumEndpointEnumerator {
 
         // Get a reference to the Java compiler
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        ArrayList<TimeBounds> toReturn = new ArrayList<>();
 
         // Loop through the files and compile each one
         for (File file : testFiles) {
+
+            Date start = new Date();
+
             int compilationResult = compiler.run(null, null, null, file.getPath());
             if (compilationResult == 0) {
                 // If compilation succeeds, run the program
@@ -134,6 +134,11 @@ public class SeleniumEndpointEnumerator {
             } else {
                 System.out.println("Compilation failed for file: " + file.getName());
             }
+
+            Date stop = new Date();
+
+            TimeBounds tb = new TimeBounds(start, stop);
+            toReturn.add(tb);
         }
 
         //  NEED TO ADD IN THE LOGGER AND THEN ADD THE ENDPOINTS GATHERED TO toReturn
@@ -142,7 +147,7 @@ public class SeleniumEndpointEnumerator {
         driver.quit();
 
 
-        CoverageController.setSelenium(toReturn);
+        //CoverageController.setSelenium(toReturn);
         return toReturn;
     }
 
@@ -207,6 +212,6 @@ public class SeleniumEndpointEnumerator {
     public static void main(String[] args) throws IOException, ZipException {
         File projectDir = new File("./../../SeleniumSample");
         //listClasses(projectDir);
-        listApiAnnotations(projectDir);
+        seleniumTestRunner(projectDir);
     }
 }

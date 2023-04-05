@@ -122,7 +122,7 @@ public class CoverageController {
         file2.transferTo(gatlingTempFile);
         file3.transferTo(swaggerTempFile);
 
-        ArrayList<EndpointInfo> seleniumList = new ArrayList<>(SeleniumEndpointEnumerator.listApiAnnotations(seleniumTempFile));
+        ArrayList<EndpointInfo> seleniumList = null;//new ArrayList<>(SeleniumEndpointEnumerator.listApiAnnotations(seleniumTempFile));
         ArrayList<EndpointInfo> gatlingList = new ArrayList<>(GatlingEndpointEnumerator.listApiAnnotations(gatlingTempFile));
         ArrayList<EndpointInfo> swaggerList = new ArrayList<>();
 

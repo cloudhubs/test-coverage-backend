@@ -24,14 +24,15 @@ public class SeleniumController {
     	File tempFile = File.createTempFile("temp-", file.getOriginalFilename());
         file.transferTo(tempFile);
 		
-        ArrayList<EndpointInfo> list =  new ArrayList<EndpointInfo>(SeleniumEndpointEnumerator.listApiAnnotations(tempFile));
-        String toRet = "";
+        //ArrayList<EndpointInfo> list =  new ArrayList<EndpointInfo>(SeleniumEndpointEnumerator.listApiAnnotations(tempFile));
+        /*String toRet = "";
         for(EndpointInfo e:list) {
         	String path =  e.getPath().substring(1, e.getPath().length() - 1);
         	toRet += e.getMethod() + " ";
         	toRet += path + '\n';
         }
-        return toRet;
+        return toRet;*/
+        return "";
     }
 
 
