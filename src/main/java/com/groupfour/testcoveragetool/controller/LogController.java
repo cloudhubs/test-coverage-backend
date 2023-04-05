@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.groupfour.testcoveragetool.group.selenium.SeleniumEndpointEnumerator;
 import net.lingala.zip4j.exception.ZipException;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -53,16 +54,20 @@ public class LogController {
 	}
 
 	@PostMapping("/field")
-	@ResponseBody
-	public void getField(@RequestParam String field) {
-		this.field = field;
+	public void getField(@RequestBody String field) {
+		if (field.charAt(field.length() - 1) == '=') {
+			this.field = field.substring(0, field.length() - 1);
+		} else {
+			this.field = field;
+		}
+
+		this.field = this.field.substring(this.field.indexOf(":") + 2, this.field.lastIndexOf("\""));
 
 		this.fieldLock = false;
 	}
 
 	@PostMapping("/regexList")
-	@ResponseBody
-	public void getRegexList(@RequestParam List<String> regexList) {
+	public void getRegexList(@RequestBody List<String> regexList) {
 		this.regexList = new ArrayList<>(regexList);
 
 		this.regexListLock = false;
