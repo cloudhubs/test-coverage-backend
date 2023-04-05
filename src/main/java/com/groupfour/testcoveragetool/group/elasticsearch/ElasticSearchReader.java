@@ -42,7 +42,7 @@ public class ElasticSearchReader {
 	
 	public void ElasticSearch() {
 		debugMode = false;
-		dateFormat.setTimeZone(TimeZone.getTimeZone("US/Central")); //set up for central timezone
+		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); //set up for central timezone
 	}
 	
 	public boolean isDebug() {
