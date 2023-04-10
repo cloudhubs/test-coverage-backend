@@ -42,7 +42,7 @@ public class ElasticSearchReader {
 	
 	public void ElasticSearch() {
 		debugMode = false;
-		dateFormat.setTimeZone(TimeZone.getTimeZone("US/Central")); //set up for central timezone
+		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); //set up for central timezone
 	}
 	
 	public boolean isDebug() {
@@ -80,8 +80,8 @@ public class ElasticSearchReader {
 				.must(QueryBuilders.rangeQuery("@timestamp") //query based on timestamp
 						.gte(startStr) //get all greater than
 						.lte(stopStr)) //get all less than
-				//.must(QueryBuilders.queryStringQuery("*GET* OR *POST* OR *PUT* OR *DELETE*").field(field)) //get all that contain GET, PUT, POST, etc.
-				.must(QueryBuilders.regexpQuery(field, regex))
+				.must(QueryBuilders.queryStringQuery(regex).field(field)) //get all that contain GET, PUT, POST, etc.
+				//.must(QueryBuilders.regexpQuery(field, regex))
 		);
 
 		//retrieve the maximum number of logs
