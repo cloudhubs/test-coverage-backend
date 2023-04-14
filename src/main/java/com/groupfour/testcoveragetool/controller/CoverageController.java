@@ -16,6 +16,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.FileWriter;
+import java.io.IOException;
 
 @CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.GET,
                                                             RequestMethod.POST,
@@ -59,6 +64,8 @@ public class CoverageController {
     private static boolean fullSeleniumLock = true;
     private static boolean noSeleniumLock = true;
     private static boolean totalLock = true;
+
+    public static final String FILE_NAME = "node-coverage.json";
 
     public static void setSwagger(ArrayList<EndpointInfo> swagger) {
         CoverageController.swagger = swagger;
@@ -383,5 +390,39 @@ public class CoverageController {
         fullSeleniumLock = true;
 
         return fullSelenium;
+    }
+
+    @GetMapping("/getJsonCoverage")
+    public static String getJsonCoverage() throws JSONException {
+
+        ArrayList<String> totalListing = new ArrayList<String>();
+
+        if (swagger != null) {
+            for (EndpointInfo current : swagger) {
+                totalListing.add(current.getPath());
+            }
+        }
+
+        JSONObject coverageJson = new JSONObject();
+        JSONArray nodes = new JSONArray();
+
+        //Need to get the results of Donnys Coverage per micro service for the loop rather than the node names
+
+        for(String x : totalListing) {
+            JSONObject node = new JSONObject();
+            node.put("nodeName", x);
+            node.put("coverageAmount", 0);
+            nodes.put(node);
+        }
+
+        coverageJson.put("nodes", nodes);
+
+        try (FileWriter fileWriter = new FileWriter(FILE_NAME)) {
+            fileWriter.write(coverageJson.toString(4));
+            fileWriter.flush();
+        } catch (IOException e) {
+        }
+
+        return coverageJson.toString();
     }
 }
