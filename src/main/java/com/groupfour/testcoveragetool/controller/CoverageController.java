@@ -10,10 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.json.JSONArray;
@@ -424,5 +421,38 @@ public class CoverageController {
         }
 
         return coverageJson.toString();
+    }
+
+    @GetMapping("/getTestMap")
+    public Map<String, List<String>> getTestMap() {
+        List<String> endpoints1 = new ArrayList<>();
+        List<String> endpoints2 = new ArrayList<>();
+        List<String> endpoints3 = new ArrayList<>();
+
+        endpoints1.add("GET /1/1");
+        endpoints1.add("POST /post/1");
+        endpoints1.add("PUSH /push/1");
+
+        endpoints2.add("DELETE /delete");
+        endpoints2.add("POST /post");
+        endpoints2.add("PUSH /push");
+
+        endpoints3.add("PATCH /patch");
+        endpoints3.add("DELETE /please/work/please");
+        endpoints3.add("GET /getter/getter1");
+
+        String one = "FirstMicroservice";
+        String two = "SecondMicroservice";
+        String three = "ThirdMicroservice";
+
+        Map<String, List<String>> ret = new HashMap<>();
+
+        ret.put(one, endpoints1);
+        ret.put(two, endpoints2);
+        ret.put(three, endpoints3);
+
+        System.err.println(ret);
+
+        return ret;
     }
 }
