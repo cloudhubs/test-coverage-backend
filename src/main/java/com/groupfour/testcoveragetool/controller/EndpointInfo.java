@@ -12,7 +12,12 @@ public class EndpointInfo {
 
     public EndpointInfo(String method, String path) {
         this.method = method;
-        this.path = path;
+//        String beg = "";
+//        if (!path.startsWith("/")) {
+//            beg = "/";
+//        }
+//        this.path = beg + path;
+        setPath(path);
         this.parameters = 0;
         for (int i = 0; i < path.length(); i++) {
             if (path.charAt(i) == BRACKET) {
@@ -23,7 +28,11 @@ public class EndpointInfo {
 
     public EndpointInfo(String method, String path, int parameters) {
         this.method = method;
-        this.path = path;
+        String beg = "";
+//        if (!path.startsWith("/")) {
+//            beg = "/";
+//        }
+        this.path = beg + path;
         this.parameters = parameters;
     }
 
@@ -44,7 +53,15 @@ public class EndpointInfo {
     }
 
     public void setPath(String path) {
-        this.path = path;
+        String beg = "";
+        if (!path.startsWith("/")) {
+            beg = "/";
+            System.err.println("Doesn't start with: " + path);
+        } else {
+            System.out.println("DOES start with: " + path);
+        }
+        this.path = beg + path;
+        this.path = this.path.replaceAll("//", "/");
     }
 
     public int getParameters() {
