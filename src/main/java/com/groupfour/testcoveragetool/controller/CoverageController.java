@@ -91,7 +91,7 @@ public class CoverageController {
             List<String> newList = new ArrayList<>();
 
             for (EndpointInfo obj : originalList) {
-                newList.add(obj.toString());
+                newList.add(obj.getMethod() + " " + obj.getPath());
             }
 
             newMap.put(key, newList);
