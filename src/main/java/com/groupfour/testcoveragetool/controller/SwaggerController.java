@@ -46,6 +46,8 @@ public class SwaggerController {
         ArrayList<EndpointInfo> allEndpoints = new ArrayList<>();
         allEndpoints.addAll(SwaggerEndpointEnumerator.listMultiEndApiAnnotations(baseEndpoints, file));
         CoverageController.setSwagger(allEndpoints);
+        Map<String, List<EndpointInfo>> newEndpoints = SwaggerEndpointEnumerator.listMultiEndApiAnnotationsMap(baseEndpoints, file);
+        CoverageController.setSwaggerMap(newEndpoints);
         return allEndpoints;
     }
 }
