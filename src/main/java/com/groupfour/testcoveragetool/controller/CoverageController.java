@@ -38,6 +38,14 @@ public class CoverageController {
     private static ArrayList<EndpointInfo> gatling;
     private static ArrayList<EndpointInfo> selenium;
 
+    private static Map<String, List<EndpointInfo>> swaggerMap;
+    private static Map<String, List<EndpointInfo>> gatlingMap;
+    private static Map<String, List<EndpointInfo>> seleniumMap;
+
+    private static Map<String, List<String>> swaggerMapStrings;
+    private static Map<String, List<String>> gatlingMapStrings;
+    private static Map<String, List<String>> seleniumMapStrings;
+
     private static ArrayList<String> fullSwagger;
     private static ArrayList<String> partialSwagger;
     private static ArrayList<String> noSwagger;
@@ -67,6 +75,34 @@ public class CoverageController {
     public static void setSwagger(ArrayList<EndpointInfo> swagger) {
         CoverageController.swagger = swagger;
     }
+
+    public static void setSwaggerMap(Map<String, List<EndpointInfo>> swaggerMap) {
+        CoverageController.swaggerMap = swaggerMap;
+    }
+
+    @GetMapping("/getSwaggerMap")
+    public Map<String, List<String>> getSwaggerMap() {
+        Map<String, List<String>> newMap = new HashMap<>();
+
+        /* fill the new map */
+        for(Map.Entry<String, List<EndpointInfo>> entry : swaggerMap.entrySet()) {
+            String key = entry.getKey();
+            List<EndpointInfo> originalList = entry.getValue();
+            List<String> newList = new ArrayList<>();
+
+            for (EndpointInfo obj : originalList) {
+                newList.add(obj.toString());
+            }
+
+            newMap.put(key, newList);
+        }
+
+        /* parse through the map and get rid of empty lists */
+        newMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+
+        return newMap;
+    }
+
 
     public static void setGatling(ArrayList<EndpointInfo> gatling) {
         CoverageController.gatling = gatling;
