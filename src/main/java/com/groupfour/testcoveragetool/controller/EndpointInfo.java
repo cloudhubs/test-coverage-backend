@@ -56,9 +56,6 @@ public class EndpointInfo {
         String beg = "";
         if (!path.startsWith("/")) {
             beg = "/";
-            System.err.println("Doesn't start with: " + path);
-        } else {
-            System.out.println("DOES start with: " + path);
         }
         this.path = beg + path;
         this.path = this.path.replaceAll("//", "/");

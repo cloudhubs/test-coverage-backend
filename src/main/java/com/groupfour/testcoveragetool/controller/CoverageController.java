@@ -100,6 +100,8 @@ public class CoverageController {
         /* parse through the map and get rid of empty lists */
         newMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
 
+        System.err.println(newMap);
+
         return newMap;
     }
 
