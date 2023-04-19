@@ -142,11 +142,22 @@ public class SwaggerEndpointEnumerator {
 
         /* get overarching directory */
         File projectDir = new File(USER_CODE);
-        File[] allFiles = projectDir.listFiles();
+        File[] baseFile = projectDir.listFiles();
+        for (File current : baseFile) {
+//            System.err.println(current.getName());
+        }
+
+        File[] allFiles = baseFile[0].listFiles();
+        for (File current : allFiles) {
+//            System.err.println(current.getName());
+        }
+        ArrayList<EndpointInfo> currentList = new ArrayList<>();
 
         for(File f : allFiles) {
+//            System.err.println(f.getName());
             if(f.isDirectory()) {
-                ArrayList<EndpointInfo> currentList = new ArrayList<>();
+//                ArrayList<EndpointInfo> currentList = new ArrayList<>();
+                currentList.clear();
                 new DirectoryTraverser((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
                     try {
                         new VoidVisitorAdapter<Object>() {
@@ -172,7 +183,7 @@ public class SwaggerEndpointEnumerator {
                     }
                 }).explore(projectDir);
 
-                toReturn.put(f.getName(), currentList);
+                toReturn.put(f.getName(), (new ArrayList<>(currentList)));
             }
         }
 

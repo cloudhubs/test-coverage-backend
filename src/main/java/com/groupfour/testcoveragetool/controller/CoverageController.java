@@ -267,7 +267,7 @@ public class CoverageController {
                         }
 
                         GATLINGCOVERAGE++;
-                        fullGatling.add(g);
+                        fullGatling.add(endpoint);
                         noGatling.remove(endpoint);
                         if (sel) {
                             fullSwagger.add(endpoint);
