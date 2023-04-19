@@ -81,7 +81,7 @@ public class CoverageController {
     }
 
     @GetMapping("/getSwaggerMap")
-    public Map<String, List<String>> getSwaggerMap() {
+    public static Map<String, List<String>> getSwaggerMap() {
         Map<String, List<String>> newMap = new HashMap<>();
 
         /* fill the new map */
@@ -430,7 +430,39 @@ public class CoverageController {
     @GetMapping("/getJsonCoverage")
     public static String getJsonCoverage() throws JSONException {
 
-        ArrayList<String> totalListing = new ArrayList<String>();
+        JSONObject coverageJson = new JSONObject();
+        JSONArray nodes = new JSONArray();
+
+        Map<String, List<String>> microserviceMap = getSwaggerMap();
+
+        for(Map.Entry<String, List<String>> entry : microserviceMap.entrySet()) {
+
+            String microservice = entry.getKey();
+            List<String> endpoints = entry.getValue();
+            int numEndpoints = endpoints.size();
+            int numCovered = 0;
+
+
+            for(String endpoint : endpoints) {
+                if(partialSwagger.contains(endpoint)) {
+                    numCovered++;
+                }
+            }
+
+            double coverageAmount = (double)numCovered / (double)numEndpoints;
+
+            JSONObject node = new JSONObject();
+            node.put("nodeName", microservice);
+            node.put("coverageAmount", Double.toString(coverageAmount));
+            nodes.put(node);
+        }
+
+        coverageJson.put("nodes", nodes);
+
+        return coverageJson.toString();
+        
+
+        /*ArrayList<String> totalListing = new ArrayList<String>();
 
         if (swagger != null) {
             for (EndpointInfo current : swagger) {
@@ -438,27 +470,12 @@ public class CoverageController {
             }
         }
 
-        JSONObject coverageJson = new JSONObject();
-        JSONArray nodes = new JSONArray();
-
-        //Need to get the results of Donnys Coverage per micro service for the loop rather than the node names
-
-        for(String x : totalListing) {
-            JSONObject node = new JSONObject();
-            node.put("nodeName", x);
-            node.put("coverageAmount", 0);
-            nodes.put(node);
-        }
-
-        coverageJson.put("nodes", nodes);
 
         try (FileWriter fileWriter = new FileWriter(FILE_NAME)) {
             fileWriter.write(coverageJson.toString(4));
             fileWriter.flush();
         } catch (IOException e) {
-        }
-
-        return coverageJson.toString();
+        }*/
     }
 
     @GetMapping("/getTestMap")
