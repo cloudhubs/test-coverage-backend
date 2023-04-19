@@ -428,7 +428,7 @@ public class CoverageController {
     }
 
     @GetMapping("/getJsonCoverage")
-    public static String getJsonCoverage() throws JSONException {
+    public String getJsonCoverage() throws JSONException {
 
         JSONObject coverageJson = new JSONObject();
         JSONArray nodes = new JSONArray();
@@ -459,7 +459,11 @@ public class CoverageController {
 
         coverageJson.put("nodes", nodes);
 
-        return coverageJson.toString();
+        String retStr = coverageJson.toString();
+
+        System.err.println(retStr);
+
+        return retStr.substring(0, retStr.length() - 1);
         
 
         /*ArrayList<String> totalListing = new ArrayList<String>();
