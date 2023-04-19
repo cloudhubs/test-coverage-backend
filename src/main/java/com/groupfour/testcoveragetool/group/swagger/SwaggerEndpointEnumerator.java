@@ -181,7 +181,7 @@ public class SwaggerEndpointEnumerator {
                     } catch (IOException e) {
                         new RuntimeException(e);
                     }
-                }).explore(projectDir);
+                }).explore(f);
 
                 toReturn.put(f.getName(), (new ArrayList<>(currentList)));
             }
