@@ -449,7 +449,7 @@ public class CoverageController {
                 }
             }
 
-            double coverageAmount = (double)numCovered / (double)numEndpoints;
+            double coverageAmount = ((double)numCovered / (double)numEndpoints) * 100.0;
 
             JSONObject node = new JSONObject();
             node.put("nodeName", microservice);
