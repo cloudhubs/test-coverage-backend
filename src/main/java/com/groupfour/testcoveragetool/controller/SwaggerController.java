@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,9 @@ public class SwaggerController {
         ArrayList<EndpointInfo> allEndpoints = new ArrayList<>();
         allEndpoints.addAll(SwaggerEndpointEnumerator.listMultiEndApiAnnotations(baseEndpoints, file));
         CoverageController.setSwagger(allEndpoints);
+        Map<String, List<EndpointInfo>> newEndpoints = new HashMap<>();
+        newEndpoints.putAll(SwaggerEndpointEnumerator.listMultiEndApiAnnotationsMap(baseEndpoints, file));
+        CoverageController.setSwaggerMap(newEndpoints);
         return allEndpoints;
     }
 }

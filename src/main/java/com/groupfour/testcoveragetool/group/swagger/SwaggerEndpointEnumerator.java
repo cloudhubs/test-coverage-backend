@@ -44,7 +44,10 @@ public class SwaggerEndpointEnumerator {
 
         zipFile.extractAll(USER_CODE);
 
+        /* get overarching directory */
         File projectDir = new File(USER_CODE);
+
+        File[] allFiles = projectDir.listFiles();
 
         new DirectoryTraverser((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
             try {
@@ -121,6 +124,76 @@ public class SwaggerEndpointEnumerator {
 
         System.out.println("Endpoints: " + toReturn.size());
         CoverageController.setSwagger(toReturn);
+        return toReturn;
+    }
+
+    public static Map<String, List<EndpointInfo>> listMultiEndApiAnnotationsMap(Map<String, EndpointInfo> baseEndpoints, File projectFile) throws IOException, ZipException {
+        Map<String, List<EndpointInfo>> toReturn = new HashMap<>();
+
+        File toDelete = new File(USER_CODE);
+        if (toDelete.isDirectory()) {
+            deleteDirectory(toDelete);
+            toDelete.delete();
+        }
+
+        ZipFile zipFile = new ZipFile(projectFile);
+
+        zipFile.extractAll(USER_CODE);
+
+        /* get overarching directory */
+        File projectDir = new File(USER_CODE);
+        File[] baseFile = projectDir.listFiles();
+        for (File current : baseFile) {
+//            System.err.println(current.getName());
+        }
+
+        File[] allFiles = baseFile[0].listFiles();
+        for (File current : allFiles) {
+//            System.err.println(current.getName());
+        }
+        ArrayList<EndpointInfo> currentList = new ArrayList<>();
+
+        for(File f : allFiles) {
+//            System.err.println(f.getName());
+            if(f.isDirectory()) {
+//                ArrayList<EndpointInfo> currentList = new ArrayList<>();
+                currentList.clear();
+                new DirectoryTraverser((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
+                    try {
+                        new VoidVisitorAdapter<Object>() {
+                            @Override
+                            public void visit(NormalAnnotationExpr n, Object arg) {
+                                super.visit(n, arg);
+
+                                Name candidate = n.getName();
+
+                                if (VALID_ENDPOINTS.contains(candidate.toString())) {
+                                    EndpointInfo current = getCurrentEndpoint(n);
+                                    current.setPath(current.getPath().replace("path = ", ""));
+                                    current.setPath(current.getPath().replace("value = ", ""));
+                                    if (baseEndpoints.containsKey(file.getName())) {
+                                        current.setPath((baseEndpoints.get(file.getName()).getPath() + "/" + current.getPath()).replace("//", "/"));
+                                    }
+                                    currentList.add(current);
+                                }
+                            }
+                        }.visit(StaticJavaParser.parse(file), null);
+                    } catch (IOException e) {
+                        new RuntimeException(e);
+                    }
+                }).explore(f);
+
+                toReturn.put(f.getName(), (new ArrayList<>(currentList)));
+            }
+        }
+
+        if (projectDir.isDirectory()) {
+            deleteDirectory(projectDir);
+            projectDir.delete();
+        }
+
+        System.out.println("Endpoints: " + toReturn.size());
+        CoverageController.setSwaggerMap(toReturn);
         return toReturn;
     }
 

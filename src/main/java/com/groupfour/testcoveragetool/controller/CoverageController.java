@@ -38,6 +38,14 @@ public class CoverageController {
     private static ArrayList<EndpointInfo> gatling;
     private static ArrayList<EndpointInfo> selenium;
 
+    private static Map<String, List<EndpointInfo>> swaggerMap;
+    private static Map<String, List<EndpointInfo>> gatlingMap;
+    private static Map<String, List<EndpointInfo>> seleniumMap;
+
+    private static Map<String, List<String>> swaggerMapStrings;
+    private static Map<String, List<String>> gatlingMapStrings;
+    private static Map<String, List<String>> seleniumMapStrings;
+
     private static ArrayList<String> fullSwagger;
     private static ArrayList<String> partialSwagger;
     private static ArrayList<String> noSwagger;
@@ -67,6 +75,36 @@ public class CoverageController {
     public static void setSwagger(ArrayList<EndpointInfo> swagger) {
         CoverageController.swagger = swagger;
     }
+
+    public static void setSwaggerMap(Map<String, List<EndpointInfo>> swaggerMap) {
+        CoverageController.swaggerMap = swaggerMap;
+    }
+
+    @GetMapping("/getSwaggerMap")
+    public static Map<String, List<String>> getSwaggerMap() {
+        Map<String, List<String>> newMap = new HashMap<>();
+
+        /* fill the new map */
+        for(Map.Entry<String, List<EndpointInfo>> entry : swaggerMap.entrySet()) {
+            String key = entry.getKey();
+            List<EndpointInfo> originalList = entry.getValue();
+            List<String> newList = new ArrayList<>();
+
+            for (EndpointInfo obj : originalList) {
+                newList.add(obj.getMethod() + " " + obj.getPath());
+            }
+
+            newMap.put(key, newList);
+        }
+
+        /* parse through the map and get rid of empty lists */
+        newMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+
+        System.err.println(newMap);
+
+        return newMap;
+    }
+
 
     public static void setGatling(ArrayList<EndpointInfo> gatling) {
         CoverageController.gatling = gatling;
@@ -229,7 +267,7 @@ public class CoverageController {
                         }
 
                         GATLINGCOVERAGE++;
-                        fullGatling.add(g);
+                        fullGatling.add(endpoint);
                         noGatling.remove(endpoint);
                         if (sel) {
                             fullSwagger.add(endpoint);
@@ -390,9 +428,45 @@ public class CoverageController {
     }
 
     @GetMapping("/getJsonCoverage")
-    public static String getJsonCoverage() throws JSONException {
+    public String getJsonCoverage() throws JSONException {
 
-        ArrayList<String> totalListing = new ArrayList<String>();
+        JSONObject coverageJson = new JSONObject();
+        JSONArray nodes = new JSONArray();
+
+        Map<String, List<String>> microserviceMap = getSwaggerMap();
+
+        for(Map.Entry<String, List<String>> entry : microserviceMap.entrySet()) {
+
+            String microservice = entry.getKey();
+            List<String> endpoints = entry.getValue();
+            int numEndpoints = endpoints.size();
+            int numCovered = 0;
+
+
+            for(String endpoint : endpoints) {
+                if(partialSwagger.contains(endpoint)) {
+                    numCovered++;
+                }
+            }
+
+            double coverageAmount = ((double)numCovered / (double)numEndpoints) * 100.0;
+
+            JSONObject node = new JSONObject();
+            node.put("nodeName", microservice);
+            node.put("coverageAmount", Double.toString(coverageAmount));
+            nodes.put(node);
+        }
+
+        coverageJson.put("nodes", nodes);
+
+        String retStr = coverageJson.toString();
+
+        System.err.println(retStr);
+
+        return retStr.substring(0, retStr.length() - 1);
+        
+
+        /*ArrayList<String> totalListing = new ArrayList<String>();
 
         if (swagger != null) {
             for (EndpointInfo current : swagger) {
@@ -400,27 +474,12 @@ public class CoverageController {
             }
         }
 
-        JSONObject coverageJson = new JSONObject();
-        JSONArray nodes = new JSONArray();
-
-        //Need to get the results of Donnys Coverage per micro service for the loop rather than the node names
-
-        for(String x : totalListing) {
-            JSONObject node = new JSONObject();
-            node.put("nodeName", x);
-            node.put("coverageAmount", 0);
-            nodes.put(node);
-        }
-
-        coverageJson.put("nodes", nodes);
 
         try (FileWriter fileWriter = new FileWriter(FILE_NAME)) {
             fileWriter.write(coverageJson.toString(4));
             fileWriter.flush();
         } catch (IOException e) {
-        }
-
-        return coverageJson.toString();
+        }*/
     }
 
     @GetMapping("/getTestMap")
