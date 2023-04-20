@@ -442,11 +442,20 @@ public class CoverageController {
             int numEndpoints = endpoints.size();
             int numCovered = 0;
 
+            JSONArray endpointsJson = new JSONArray();
 
             for(String endpoint : endpoints) {
+                JSONObject currEndpoint = new JSONObject();
+                String isCovered = "no";
+
                 if(partialSwagger.contains(endpoint)) {
                     numCovered++;
+                    isCovered = "yes";
                 }
+
+                currEndpoint.put("endpoint", endpoint);
+                currEndpoint.put("isCovered", isCovered);
+                endpointsJson.put(currEndpoint);
             }
 
             double coverageAmount = ((double)numCovered / (double)numEndpoints) * 100.0;
@@ -454,6 +463,7 @@ public class CoverageController {
             JSONObject node = new JSONObject();
             node.put("nodeName", microservice);
             node.put("coverageAmount", Double.toString(coverageAmount));
+            node.put("endpoints", endpointsJson);
             nodes.put(node);
         }
 
