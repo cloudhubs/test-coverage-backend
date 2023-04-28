@@ -26,16 +26,19 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/requests/logs")
 public class LogController {
 	private ElasticSearchReader logReader = new ElasticSearchReader();
-	private String field;
+	private String methodField;
+	private String urlField;
 	private List<String> regexList;
-	private boolean fieldLock = true;
+	private boolean methodFieldLock = true;
+	private boolean urlFieldLock = true;
 	private boolean regexListLock = true;
 
 	@GetMapping("/endpoints")
 	public List<String> getAllEndpoints(@RequestParam("file") MultipartFile file) throws IOException, ParseException, ZipException {
-		while (this.fieldLock || this.regexListLock);
+		while (this.methodFieldLock || this.urlFieldLock || this.regexListLock);
 
-		this.fieldLock = true;
+		this.methodFieldLock = true;
+		this.urlFieldLock = true;
 		this.regexListLock = true;
 
 		HashSet<String> endpointsTested = null;
@@ -53,17 +56,33 @@ public class LogController {
 		return new ArrayList<String>(endpointsTested);
 	}
 
-	@PostMapping("/field")
-	public void getField(@RequestBody String field) {
+	@PostMapping("/methodField")
+	public void getMethodField(@RequestBody String field) {
 		if (field.charAt(field.length() - 1) == '=') {
-			this.field = field.substring(0, field.length() - 1);
+			this.methodField = field.substring(0, field.length() - 1);
 		} else {
-			this.field = field;
+			this.methodField = field;
 		}
 
-		this.field = this.field.substring(this.field.indexOf(":") + 2, this.field.lastIndexOf("\""));
+		this.methodField = this.methodField.substring(this.methodField.indexOf(":") + 2, this.methodField.lastIndexOf("\""));
+		System.err.println(this.methodField);
 
-		this.fieldLock = false;
+		this.methodFieldLock = false;
+	}
+
+	@PostMapping("/urlField")
+	public void getUrlField(@RequestBody String field) {
+		if (field.charAt(field.length() - 1) == '=') {
+			this.urlField = field.substring(0, field.length() - 1);
+		} else {
+			this.urlField = field;
+		}
+
+		this.urlField = this.urlField.substring(this.urlField.indexOf(":") + 2, this.urlField.lastIndexOf("\""));
+
+		System.err.println(this.urlField);
+
+		this.urlFieldLock = false;
 	}
 
 	@PostMapping("/regexList")
@@ -75,6 +94,6 @@ public class LogController {
 	
 	
 	private HashSet<String> parseLogsForEndpoints(Date from, Date to) throws IOException, ParseException {
-		return logReader.getEndpointsHit(from, to, field, regexList);
+		return logReader.getEndpointsHit(from, to, methodField + urlField, regexList);
 	}
 }
