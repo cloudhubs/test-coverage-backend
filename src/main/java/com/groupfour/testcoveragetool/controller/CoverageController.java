@@ -312,7 +312,7 @@ public class CoverageController {
                         }
 
                         SELENIUMCOVERAGE++;
-                        fullSelenium.add(s);
+                        fullSelenium.add(endpoint);
                         noSelenium.remove(endpoint);
                         if (gat) {
                             fullSwagger.add(endpoint);

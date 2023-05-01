@@ -8,6 +8,11 @@ public class EndpointInfo {
     private String path;
     private int parameters;
 
+    private static final String GET = "GET ";
+    private static final String POST = "POST ";
+    private static final String PUT = "POST ";
+    private static final String DELETE = "POST ";
+
     private static final char BRACKET = '{';
 
     public EndpointInfo(String method, String path) {
@@ -34,6 +39,10 @@ public class EndpointInfo {
 //        }
         this.path = beg + path;
         this.parameters = parameters;
+    }
+
+    public EndpointInfo convertFromString(String e) {
+
     }
 
     public String getMethod() {
