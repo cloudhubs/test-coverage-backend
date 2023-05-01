@@ -1,5 +1,6 @@
 package com.groupfour.testcoveragetool.controller;
 
+import java.util.HashSet;
 import java.util.Objects;
 
 public class EndpointInfo {
@@ -41,8 +42,8 @@ public class EndpointInfo {
         this.parameters = parameters;
     }
 
-    public EndpointInfo convertFromString(String e) {
-
+    public void convertFromString(HashSet<String> eps) {
+        
     }
 
     public String getMethod() {
