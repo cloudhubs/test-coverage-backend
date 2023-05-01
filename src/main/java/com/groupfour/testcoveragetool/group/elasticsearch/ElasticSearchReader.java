@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.groupfour.testcoveragetool.controller.CoverageController;
+import com.groupfour.testcoveragetool.controller.EndpointInfo;
 import org.apache.http.HttpHost;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
@@ -71,7 +73,12 @@ public class ElasticSearchReader {
 	public HashSet<String> getEndpointsHit(Date from, Date to, String field, List<String> regexList) throws IOException, Exception {
 		List<String> logs = getLogsInTimeRange(from, to, field, regexList);
 		//return getEndpointsFromLogs(logs);
-		return new HashSet<String>(logs);
+
+		HashSet<String> l = new HashSet<>(logs);
+
+		CoverageController.setSelenium(EndpointInfo.convertFromStrings(l));
+
+		return l;
 	}
 
 	@SuppressWarnings("deprecation")
