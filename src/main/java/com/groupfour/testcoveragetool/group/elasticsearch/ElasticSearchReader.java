@@ -1,21 +1,22 @@
 package com.groupfour.testcoveragetool.group.elasticsearch;
 
 import java.io.IOException;
+import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.TimeZone;
+import java.time.Instant;
+import java.util.*;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.*;
 
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -29,8 +30,8 @@ public class ElasticSearchReader {
 	
 	
 	@SuppressWarnings("deprecation")
-	private RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200)));
-	private SearchRequest request = new SearchRequest("*"); //match all indices
+	private RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.3.122", 9200)));
+	private SearchRequest request = new SearchRequest("jaeger-span-*"); //match all indices
 	private SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 	
 	public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -44,7 +45,17 @@ public class ElasticSearchReader {
 		debugMode = false;
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); //set up for central timezone
 	}
-	
+
+	public String shortenURL(String s) throws Exception {
+		String[] parts = s.split("\\s+");
+		String method = parts[0];
+		String url = parts[1].replaceAll(" ", "%20");
+		URI uri = new URI(url);
+		String path = uri.getPath();
+		return method + " " + path;
+	}
+
+
 	public boolean isDebug() {
 		return debugMode;
 	}
@@ -55,7 +66,7 @@ public class ElasticSearchReader {
 		return this;
 	}
 	
-	public List<String> getLogsInTimeRange(Date start, Date stop, String field, List<String> regexList) throws IOException, ParseException {
+	public List<String> getLogsInTimeRange(Date start, Date stop, String field, List<String> regexList) throws IOException, Exception {
 		List<String> logs = new ArrayList<String>();
 		for(String regex:regexList) {
 			logs.addAll(getLogs(start, stop, field, regex));
@@ -64,52 +75,60 @@ public class ElasticSearchReader {
 		return logs;
 	}
 	
-	public HashSet<String> getEndpointsHit(Date from, Date to, String field, List<String> regexList) throws IOException, ParseException {
+	public HashSet<String> getEndpointsHit(Date from, Date to, String field, List<String> regexList) throws IOException, Exception {
 		List<String> logs = getLogsInTimeRange(from, to, field, regexList);
 		return getEndpointsFromLogs(logs);
 	}
 
 	@SuppressWarnings("deprecation")
-	private List<String> getLogs(Date start, Date stop, String field, String regex) throws IOException {
+	private List<String> getLogs(Date start, Date stop, String field, String regex) throws IOException, Exception {
 		List<String> restLogs = new ArrayList<String>();
-		String startStr = dateFormat.format(start);
-		String stopStr = dateFormat.format(stop);
 
 		//build the query
-		searchSourceBuilder.query(QueryBuilders.boolQuery()
-				.must(QueryBuilders.rangeQuery("@timestamp") //query based on timestamp
-						.gte(startStr) //get all greater than
-						.lte(stopStr)) //get all less than
-				.must(QueryBuilders.queryStringQuery(regex).field(field)) //get all that contain GET, PUT, POST, etc.
-				//.must(QueryBuilders.regexpQuery(field, regex))
-		);
 
+		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.method"), ScoreMode.None))
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.url"), ScoreMode.None))
+				.filter(QueryBuilders.rangeQuery("startTimeMillis").gte(start.toInstant().toEpochMilli()).lte(stop.toInstant().toEpochMilli()));
+
+
+
+		searchSourceBuilder.query(queryBuilder);
 		//retrieve the maximum number of logs
 		searchSourceBuilder.size(10000);
 		request.source(searchSourceBuilder);
 
 		SearchResponse searchResponse = rhlc.search(request, RequestOptions.DEFAULT); //perform the request
 		SearchHits hits = searchResponse.getHits();
-		
-		for(SearchHit hit:hits.getHits()) {
-			String source = hit.getSourceAsString();
-			restLogs.add(source);
-			if(isDebug()) {
-				System.out.println(source);
+
+		for (SearchHit hit : hits) {
+			String sourceAsString = hit.getSourceAsString();
+			ObjectMapper objectMapper = new ObjectMapper();
+			Map<String, Object> sourceAsMap = objectMapper.readValue(sourceAsString, new TypeReference<Map<String, Object>>() {});
+			List<Map<String, Object>> tags = (List<Map<String, Object>>) sourceAsMap.get("tags");
+
+			String method = null;
+			String url = null;
+
+			for (Map<String, Object> tag : tags) {
+				String key = (String) tag.get("key");
+				if (key.equals("http.method")) {
+					method = (String) tag.get("value");
+				} else if (key.equals("http.url")) {
+					url = (String) tag.get("value");
+				}
+
+				if (method != null && url != null) {
+					break;
+				}
+			}
+
+			if (method != null && url != null) {
+				String methodUrl = method + " " + url;
+				restLogs.add(shortenURL(methodUrl));
 			}
 		}
-		
-		if(isDebug()) {
-			System.out.println("Total Hits: " + hits.getTotalHits());
-			
-			for(String s:restLogs) {
-				System.out.println(s);
-			}
-			
-			System.out.println();
-		}
-		
-		
+
 		rhlc.close();
 		return restLogs;
 	}

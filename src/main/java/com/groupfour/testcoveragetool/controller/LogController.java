@@ -34,7 +34,7 @@ public class LogController {
 	private boolean regexListLock = true;
 
 	@GetMapping("/endpoints")
-	public List<String> getAllEndpoints(@RequestParam("file") MultipartFile file) throws IOException, ParseException, ZipException {
+	public List<String> getAllEndpoints(@RequestParam("file") MultipartFile file) throws Exception {
 		while (this.methodFieldLock || this.urlFieldLock || this.regexListLock);
 
 		this.methodFieldLock = true;
@@ -93,7 +93,7 @@ public class LogController {
 	}
 	
 	
-	private HashSet<String> parseLogsForEndpoints(Date from, Date to) throws IOException, ParseException {
+	private HashSet<String> parseLogsForEndpoints(Date from, Date to) throws IOException, Exception {
 		return logReader.getEndpointsHit(from, to, methodField + urlField, regexList);
 	}
 }
