@@ -46,14 +46,7 @@ public class ElasticSearchReader {
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); //set up for central timezone
 	}
 
-	public String shortenURL(String s) throws Exception {
-		String[] parts = s.split("\\s+");
-		String method = parts[0];
-		String url = parts[1].replaceAll(" ", "%20");
-		URI uri = new URI(url);
-		String path = uri.getPath();
-		return method + " " + path;
-	}
+
 
 
 	public boolean isDebug() {
@@ -77,7 +70,8 @@ public class ElasticSearchReader {
 	
 	public HashSet<String> getEndpointsHit(Date from, Date to, String field, List<String> regexList) throws IOException, Exception {
 		List<String> logs = getLogsInTimeRange(from, to, field, regexList);
-		return getEndpointsFromLogs(logs);
+		//return getEndpointsFromLogs(logs);
+		return new HashSet<String>(logs);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -132,7 +126,19 @@ public class ElasticSearchReader {
 		rhlc.close();
 		return restLogs;
 	}
-	
+
+
+	public String shortenURL(String s) throws Exception {
+		String[] parts = s.split("\\s+");
+		String method = parts[0];
+		String url = parts[1].replaceAll(" ", "%20");
+		URI uri = new URI(url);
+		String path = uri.getPath();
+		return method + " " + path;
+	}
+
+	/*
+	//Unused?
 	public HashSet<String> getEndpointsFromLogs(List<String> logs) {
 		HashSet<String> endpoints = new HashSet<String>();
 		
@@ -189,4 +195,6 @@ public class ElasticSearchReader {
 		
 		return log.substring(start, stop);
 	}
+	*/
+
 }
