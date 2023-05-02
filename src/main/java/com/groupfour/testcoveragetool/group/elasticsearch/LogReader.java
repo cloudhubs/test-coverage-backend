@@ -13,64 +13,115 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.io.IOException;
+import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpHost;
+import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.*;
+
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import com.groupfour.testcoveragetool.group.APIType;
 
 
 public class LogReader {
 
-	public static void elasticServiceThing() throws IOException, JSONException {
-		String index = "logstash-2023.02.27-000001";
-		String id = "DJSGm4YBdjksNf-3lgN1";
-		URL url = new URL("http://localhost:9200/" + index + "/_search?pretty=true&q=*.*&size=100");
-		HttpURLConnection con = (HttpURLConnection) url.openConnection();
-		con.setRequestMethod("GET");
+	public static void main(String[] args) throws Exception {
+		RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.3.122", 9200)));
+		SearchRequest request = new SearchRequest("jaeger-span-2023-05-02"); //match all indices
+		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
-		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		String inputLine;
+		List<String> restLogs = new ArrayList<String>();
 
-		StringBuffer response = new StringBuffer();
+		//build the query
+		//long startTime = Instant.parse("2023-05-02T00:00:00Z").toEpochMilli();
+		//long endTime = Instant.parse("2023-05-03T00:00:00Z").toEpochMilli();
 
-		while(((inputLine = in.readLine()) != null)) {
+		long startTime = Instant.now().toEpochMilli();
+		System.out.println(startTime);
+		Thread.sleep(10000);
 
-			//JSONObject jsonArray = new JSONObject(inputLine);
-			//System.out.println(jsonArray.getString("message"));
-			/*for(int i = 0; i < jsonArray.length(); i++) {
-				JSONObject object = jsonArray.getJSONObject(i);
-				System.out.println(object.getString("message"));
-			}*/
+		long endTime = Instant.now().toEpochMilli();
+		System.out.println(endTime);
 
+		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.method"), ScoreMode.None))
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.url"), ScoreMode.None))
+				.filter(QueryBuilders.rangeQuery("startTimeMillis").gte(startTime).lte(endTime));
 
-			for(String x : inputLine.split(",")) {
-				if(x.toLowerCase().contains("message") && x.contains("/")){
+		searchSourceBuilder.query(queryBuilder);
+		//retrieve the maximum number of logs
+		searchSourceBuilder.size(10000);
+		request.source(searchSourceBuilder);
 
-					String path = x.substring(x.indexOf("/"), x.length() - 1);
+		SearchResponse searchResponse = rhlc.search(request, RequestOptions.DEFAULT); //perform the request
+		SearchHits hits = searchResponse.getHits();
 
-					if(x.toLowerCase().contains("get")) {
-						System.out.println("GET " + path) ;
-					}
-					else if(x.toLowerCase().contains("post")) {
-						System.out.println("POST " + path);
-					}
-					else if(x.toLowerCase().contains("put")) {
-						System.out.println("PUT " + path);
-					}
-					else if(x.toLowerCase().contains("delete")) {
-						System.out.println("DELETE " + path);
-					}
-					else if(x.toLowerCase().contains("patch")) {
-						System.out.println("PATCH " + path);
-					}
-					else if(x.toLowerCase().contains("request")) {
-						System.out.println("REQUEST " + path);
-					}
-					//System.out.println(x);
+		for (SearchHit hit : hits) {
+			String sourceAsString = hit.getSourceAsString();
+			ObjectMapper objectMapper = new ObjectMapper();
+			Map<String, Object> sourceAsMap = objectMapper.readValue(sourceAsString, new TypeReference<Map<String, Object>>() {});
+			List<Map<String, Object>> tags = (List<Map<String, Object>>) sourceAsMap.get("tags");
+
+			String method = null;
+			String url = null;
+
+			for (Map<String, Object> tag : tags) {
+				String key = (String) tag.get("key");
+				if (key.equals("http.method")) {
+					method = (String) tag.get("value");
+				} else if (key.equals("http.url")) {
+					url = (String) tag.get("value");
+				}
+
+				if (method != null && url != null) {
+					break;
 				}
 			}
 
-
-			response.append(inputLine);
+			if (method != null && url != null) {
+				String methodUrl = method + " " + url;
+				restLogs.add(shortenURL(methodUrl));
+			}
 		}
-		in.close();
-		System.out.println(response.toString());
+
+
+		for(String s:restLogs) {
+			System.out.println(s);
+		}
+
+		System.out.println(restLogs.size());
+
+
+
+
+
+		rhlc.close();
 	}
+
+	public static String shortenURL(String s) throws Exception {
+		String[] parts = s.split("\\s+");
+		String method = parts[0];
+		String url = parts[1].replaceAll(" ", "%20");
+		URI uri = new URI(url);
+		String path = uri.getPath();
+		return method + " " + path;
+	}
+
+
 
 }

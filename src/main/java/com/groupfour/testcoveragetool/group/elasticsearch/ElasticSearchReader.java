@@ -36,7 +36,7 @@ public class ElasticSearchReader {
 	private SearchRequest request = new SearchRequest("jaeger-span-*"); //match all indices
 	private SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 	
-	public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	//public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
 	public void ElasticSearch(boolean debug) {
 		ElasticSearch();
@@ -45,7 +45,7 @@ public class ElasticSearchReader {
 	
 	public void ElasticSearch() {
 		debugMode = false;
-		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); //set up for central timezone
+		//dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); //set up for central timezone
 	}
 
 
@@ -60,16 +60,18 @@ public class ElasticSearchReader {
 		
 		return this;
 	}
-	
-	public List<String> getLogsInTimeRange(Date start, Date stop, String field, List<String> regexList) throws IOException, Exception {
-		List<String> logs = new ArrayList<String>();
-		for(String regex:regexList) {
-			logs.addAll(getLogs(start, stop, field, regex));
-		}
-		
-		return logs;
-	}
-	
+
+
+	/**
+	 * gets the endpoints hit in a specific time window
+	 * @param from start time
+	 * @param to end time
+	 * @param field deprecated
+	 * @param regexList deprecated
+	 * @return a HashSet of all the endpoints hit in the time window
+	 * @throws IOException
+	 * @throws Exception
+	 */
 	public HashSet<String> getEndpointsHit(Date from, Date to, String field, List<String> regexList) throws IOException, Exception {
 		List<String> logs = getLogsInTimeRange(from, to, field, regexList);
 		//return getEndpointsFromLogs(logs);
@@ -80,6 +82,17 @@ public class ElasticSearchReader {
 
 		return l;
 	}
+
+	private List<String> getLogsInTimeRange(Date start, Date stop, String field, List<String> regexList) throws IOException, Exception {
+		List<String> logs = new ArrayList<String>();
+		for(String regex:regexList) {
+			logs.addAll(getLogs(start, stop, field, regex));
+		}
+		
+		return logs;
+	}
+	
+
 
 	@SuppressWarnings("deprecation")
 	private List<String> getLogs(Date start, Date stop, String field, String regex) throws IOException, Exception {
@@ -135,7 +148,7 @@ public class ElasticSearchReader {
 	}
 
 
-	public String shortenURL(String s) throws Exception {
+	private String shortenURL(String s) throws Exception {
 		String[] parts = s.split("\\s+");
 		String method = parts[0];
 		String url = parts[1].replaceAll(" ", "%20");
@@ -148,58 +161,58 @@ public class ElasticSearchReader {
 	//Unused?
 	public HashSet<String> getEndpointsFromLogs(List<String> logs) {
 		HashSet<String> endpoints = new HashSet<String>();
-		
+
 		for(String log:logs) {
 			String endpoint = extractEndpoint(log);
-			
+
 			if(isDebug()) {
 				System.out.println(endpoint);
 			}
-			
+
 			endpoints.add(endpoint);
 		}
-		
+
 		return endpoints;
 	}
-	
+
 	public static String extractEndpoint(String str) {
 		Objects.requireNonNull(str, "String is null");
 		String endpoint = "";
 		endpoint += findRequestType(str);
 		endpoint += " ";
 		endpoint += findMapping(str);
-		
+
 		return endpoint;
 	}
-	
+
 	public static String findRequestType(String log) {
 		for(APIType request: APIType.values()) {
 			if(log.contains(request.toString())) {
 				return request.toString();
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	public static String findMapping(String log) {
 		Objects.requireNonNull(log, "Log is null");
 		if(log.isEmpty()) {
 			throw new IllegalArgumentException("Log is empty");
 		}
 		String requestType = findRequestType(log);
-		
+
 		int start = log.indexOf("/", log.indexOf(requestType));
 		int stop = log.indexOf(" ", start);
-		
+
 		if(stop == -1 && start != -1) {
 			stop = log.length() - 1;
 		}
-		
+
 		if(start == -1 || stop == -1) {
 			throw new IllegalArgumentException("Mapping not formatted properly");
 		}
-		
+
 		return log.substring(start, stop);
 	}
 	*/
