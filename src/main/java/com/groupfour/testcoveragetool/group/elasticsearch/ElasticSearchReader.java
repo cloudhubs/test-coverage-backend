@@ -29,7 +29,7 @@ import com.groupfour.testcoveragetool.group.APIType;
 public class ElasticSearchReader {
 
 	private boolean debugMode;
-	
+	private int timeDeltaSec;
 	
 	@SuppressWarnings("deprecation")
 	private RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.3.122", 9200)));
@@ -38,18 +38,17 @@ public class ElasticSearchReader {
 	
 	//public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-	public void ElasticSearch(boolean debug) {
+	public void ElasticSearch(boolean debug, int timeDeltaSeconds) {
 		ElasticSearch();
 		debugMode = debug;
+		timeDeltaSec = timeDeltaSeconds;
 	}
 	
 	public void ElasticSearch() {
 		debugMode = false;
+		timeDeltaSec = 0;
 		//dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); //set up for central timezone
 	}
-
-
-
 
 	public boolean isDebug() {
 		return debugMode;
@@ -63,7 +62,8 @@ public class ElasticSearchReader {
 
 
 	/**
-	 * gets the endpoints hit in a specific time window
+	 * gets the endpoints hit in a specific time window (automatically corrects the window based on timeDeltaSeconds)
+	 * calls getLogsInTimeRange,
 	 * @param from start time
 	 * @param to end time
 	 * @param field deprecated
@@ -83,6 +83,16 @@ public class ElasticSearchReader {
 		return l;
 	}
 
+	/**
+	 * gets all Endpoints within a specific time range, including duplicates, for all regexes provided
+	 * @param start this system's start time
+	 * @param stop this system's stop time
+	 * @param field
+	 * @param regexList
+	 * @return
+	 * @throws IOException
+	 * @throws Exception
+	 */
 	private List<String> getLogsInTimeRange(Date start, Date stop, String field, List<String> regexList) throws IOException, Exception {
 		List<String> logs = new ArrayList<String>();
 		for(String regex:regexList) {
@@ -91,21 +101,48 @@ public class ElasticSearchReader {
 		
 		return logs;
 	}
-	
 
 
+	/**
+	 * gets all logs within a time range for a given regex
+	 * @param start
+	 * @param stop
+	 * @param field
+	 * @param regex
+	 * @return
+	 * @throws IOException
+	 * @throws Exception
+	 */
 	@SuppressWarnings("deprecation")
 	private List<String> getLogs(Date start, Date stop, String field, String regex) throws IOException, Exception {
+
+		//fix the timestamps using the delta
+		long startTime = start.toInstant().toEpochMilli();
+		startTime += (timeDeltaSec * 1000) ;
+
+
+		long endTime = stop.toInstant().toEpochMilli();
+		endTime += (timeDeltaSec * 1000);
+
+
+		List<String> restLogs = queryLogs(startTime, endTime);
+
+		if(isDebug()) {
+			for (String s : restLogs) {
+				System.out.println(s);
+			}
+
+			System.out.println("Number of endpoints: " + restLogs.size());
+		}
+
+		rhlc.close();
+		return restLogs;
+	}
+
+
+	private  List<String> queryLogs(long start, long stop) throws Exception {
 		List<String> restLogs = new ArrayList<String>();
-
-		//build the query
-
-		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
-				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.method"), ScoreMode.None))
-				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.url"), ScoreMode.None))
-				.filter(QueryBuilders.rangeQuery("startTimeMillis").gte(start.toInstant().toEpochMilli()).lte(stop.toInstant().toEpochMilli()));
-
-
+		QueryBuilder queryBuilder = buildQuery(start, stop);
 
 		searchSourceBuilder.query(queryBuilder);
 		//retrieve the maximum number of logs
@@ -143,8 +180,16 @@ public class ElasticSearchReader {
 			}
 		}
 
-		rhlc.close();
 		return restLogs;
+	}
+
+	private QueryBuilder buildQuery(long startTime, long endTime) {
+		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.method"), ScoreMode.None))
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.url"), ScoreMode.None))
+				.filter(QueryBuilders.rangeQuery("startTimeMillis").gte(startTime).lte(endTime));
+
+		return queryBuilder;
 	}
 
 
