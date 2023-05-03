@@ -33,9 +33,11 @@ public class LogController {
 	private boolean urlFieldLock = true;
 	private boolean regexListLock = true;
 
-	@GetMapping("/endpoints")
+	@PostMapping("/endpoints")
 	public List<String> getAllEndpoints(@RequestParam("file") MultipartFile file) throws Exception {
+		System.err.println("hit endpoints 1");
 		while (this.methodFieldLock || this.urlFieldLock || this.regexListLock);
+		System.err.println("hit endpoints 2");
 
 		this.methodFieldLock = true;
 		this.urlFieldLock = true;
@@ -52,6 +54,8 @@ public class LogController {
 		for(TimeBounds t : timeChunks) {
 			parseLogsForEndpoints(t.getStartTime(), t.getEndTime());
 		}
+
+		System.err.println("hit endpoints 3");
 		
 		return new ArrayList<String>(endpointsTested);
 	}

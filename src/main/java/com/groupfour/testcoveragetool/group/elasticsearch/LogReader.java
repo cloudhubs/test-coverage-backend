@@ -28,7 +28,7 @@ import java.util.Map;
 public class LogReader {
 
 	private static RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.3.122", 9200)));
-	private static SearchRequest request = new SearchRequest("jaeger-span-2023-05-02"); //match all indices
+	private static SearchRequest request = new SearchRequest("jaeger-span-2023-05-03"); //match all indices
 	private static SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
 	private static final int TIMEDELTASEC = -1;

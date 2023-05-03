@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import net.lingala.zip4j.exception.ZipException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+//import org.openqa.selenium.chrome.ChromeDriver;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -95,7 +95,7 @@ public class SeleniumEndpointEnumerator {
 
         //Selenium WebDriver instance
         System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");     //I still dont know what this does
-        WebDriver driver = new ChromeDriver();
+//        WebDriver driver = new ChromeDriver();
         //final String baseUrl = "http://google.com";       //I have no clue if we will need this
 
         //loop through each test and run it

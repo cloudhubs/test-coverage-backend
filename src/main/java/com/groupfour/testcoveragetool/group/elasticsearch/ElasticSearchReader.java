@@ -79,6 +79,7 @@ public class ElasticSearchReader {
 		HashSet<String> l = new HashSet<>(logs);
 
 		CoverageController.setSelenium(EndpointInfo.convertFromStrings(l));
+		System.err.println("hit setter");
 
 		return l;
 	}
