@@ -34,7 +34,7 @@ public class LogController {
 	private boolean regexListLock = true;
 
 	@PostMapping("/endpoints")
-	public List<String> getAllEndpoints(@RequestParam("file") MultipartFile file) throws Exception {
+	public void getAllEndpoints(@RequestParam("file") MultipartFile file) throws Exception {
 		System.err.println("hit endpoints 1");
 		while (this.methodFieldLock || this.urlFieldLock || this.regexListLock);
 		System.err.println("hit endpoints 2");
@@ -43,7 +43,7 @@ public class LogController {
 		this.urlFieldLock = true;
 		this.regexListLock = true;
 
-		HashSet<String> endpointsTested = null;
+		//HashSet<String> endpointsTested = null;
 
 		File tempFile = File.createTempFile("temp-", file.getOriginalFilename());
 		file.transferTo(tempFile);
@@ -57,7 +57,7 @@ public class LogController {
 
 		System.err.println("hit endpoints 3");
 		
-		return new ArrayList<String>(endpointsTested);
+		//return new ArrayList<String>(endpointsTested);
 	}
 
 	@PostMapping("/methodField")
