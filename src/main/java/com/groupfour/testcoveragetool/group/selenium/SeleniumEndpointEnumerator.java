@@ -144,7 +144,7 @@ public class SeleniumEndpointEnumerator {
         //  NEED TO ADD IN THE LOGGER AND THEN ADD THE ENDPOINTS GATHERED TO toReturn
 
         // Quit the Selenium WebDriver instance
-        driver.quit();
+//        driver.quit();
 
 
         //CoverageController.setSelenium(toReturn);
