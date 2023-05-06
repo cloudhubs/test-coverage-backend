@@ -28,16 +28,16 @@ import java.util.Map;
 public class LogReader {
 
 	private static RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.3.122", 9200)));
-	private static SearchRequest request = new SearchRequest("jaeger-span-2023-05-03"); //match all indices
+	private static SearchRequest request = new SearchRequest("jaeger-span-*"); //match all indices
 	private static SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
 	private static final int TIMEDELTASEC = -1;
 
 	public static void main(String[] args) throws Exception {
 
-		timeQuery();
+		//timeQuery();
 		//diffQuery();
-
+		timeQueryBounds(1683396420626l, 1683396554594l);
 
 	}
 
@@ -76,11 +76,26 @@ public class LogReader {
 		System.out.println("After: " + restLogs.size());
 
 
+		rhlc.close();
+	}
 
+	public static void timeQueryBounds(long startTime, long endTime) throws Exception {
+
+
+		List<String> restLogs = queryLogsTime(startTime, endTime);
+
+		for(String s:restLogs) {
+			System.out.println(s);
+		}
+
+
+		//System.out.println("Before: " + before.size());
+		System.out.println("After: " + restLogs.size());
 
 
 		rhlc.close();
 	}
+
 
 	private static List<String> queryLogsTime(long start, long stop) throws Exception {
 		List<String> restLogs = new ArrayList<String>();

@@ -131,6 +131,7 @@ public class CoverageController {
 
     public static void setSelenium(ArrayList<EndpointInfo> selenium) {
         CoverageController.selenium = selenium;
+        System.out.println("setSelenium: " + CoverageController.selenium);
         SELENIUMCOVERAGE = 0;
     }
 
