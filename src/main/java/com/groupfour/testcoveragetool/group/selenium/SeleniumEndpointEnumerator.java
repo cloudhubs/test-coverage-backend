@@ -44,7 +44,7 @@ import javax.tools.ToolProvider;
 
 public class SeleniumEndpointEnumerator {
 
-    public static final String USER_TESTS = "UserTests";
+    public static final String USER_TESTS = "SelTests";
     public static final int SUBIDX = 2;
 
     public static Set<String> validEndpoints = new HashSet<String>(Arrays.asList("GetMapping",
@@ -254,6 +254,7 @@ public class SeleniumEndpointEnumerator {
 
         request.setPomFile(new File(projectPath + "/pom.xml"));
         request.setGoals(Collections.singletonList("test -Dmaven.test.skip=false -B -Dtest=com.example.**"));
+//        request.setWaitForCompletion(true);
 
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(new File(System.getProperty("M2_HOME")));
@@ -344,7 +345,7 @@ public class SeleniumEndpointEnumerator {
         File projectDir = new File("./src/main/java/com/groupfour/testcoveragetool/group/selenium/Selenium_TrainTicket.zip");
         //listClasses(projectDir);
         //seleniumTestRunner(projectDir);
-        //runJUnit(projectDir);
+        seleniumTestRunner(projectDir);
     }
 
 

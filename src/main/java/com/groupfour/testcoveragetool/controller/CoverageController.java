@@ -69,6 +69,7 @@ public class CoverageController {
     private static boolean fullSeleniumLock = true;
     private static boolean noSeleniumLock = true;
     private static boolean totalLock = true;
+    private static boolean mavenLock = true;
 
     public static final String FILE_NAME = "node-coverage.json";
 
@@ -105,6 +106,9 @@ public class CoverageController {
         return newMap;
     }
 
+    public static void setMavenLock(boolean lock) {
+        mavenLock = lock;
+    }
 
     public static void setGatling(ArrayList<EndpointInfo> gatling) {
         CoverageController.gatling = gatling;
@@ -131,7 +135,11 @@ public class CoverageController {
 
     public static void setSelenium(ArrayList<EndpointInfo> selenium) {
         CoverageController.selenium = selenium;
-        System.out.println("setSelenium: " + CoverageController.selenium);
+//        System.out.println("setSelenium: " + CoverageController.selenium);
+        for (EndpointInfo current : CoverageController.selenium) {
+            System.err.print(current.getEndpoint() + ", ");
+        }
+        System.err.println();
         SELENIUMCOVERAGE = 0;
     }
 
@@ -202,6 +210,7 @@ public class CoverageController {
     public int getPartialCoverage() {
         //if in one and not the other than increment counter\
         //can use global variable for counter to make no coverage easier
+        while (mavenLock);
         PARTIALCOVERAGE = 0;
         GATLINGCOVERAGE = 0;
         SELENIUMCOVERAGE = 0;
@@ -230,7 +239,7 @@ public class CoverageController {
         noSwagger = new ArrayList<>();
         fullGatling = new ArrayList<>();
         fullSelenium = new ArrayList<>();
-        fullSelenium = new ArrayList<>();
+//        fullSelenium = new ArrayList<>();
         fullSwagger = new ArrayList<>();
         partialSwagger = new ArrayList<>();
         noGatling.addAll(swaggerStr);
@@ -283,11 +292,12 @@ public class CoverageController {
             }
         }
 
+        System.err.println("selenium: " + seleniumStr);
         for (EndpointInfo current : swagger) {
             String endpoint = current.getEndpoint();
 
             if (current.getParameters() == 0) {
-                if (seleniumStr.contains(endpoint) && !noGatling.contains(endpoint)) {
+                if (seleniumStr.contains(endpoint) && !gatlingStr.contains(endpoint)) {
                     SELENIUMCOVERAGE++;
                     fullSelenium.add(endpoint);
                     noSelenium.remove(endpoint);
@@ -298,12 +308,12 @@ public class CoverageController {
                     SELENIUMCOVERAGE++;
                     fullSelenium.add(endpoint);
                     noSelenium.remove(endpoint);
-                    fullSwagger.add(endpoint);
-                    noSwagger.remove(endpoint);
+//                    fullSwagger.add(endpoint);
+//                    noSwagger.remove(endpoint);
                 }
             } else {
                 for (String s : seleniumStr) {
-                    if (s.contains(current.subEndpoint()) && seleniumStr.contains(endpoint)) {
+                    if (s.contains(current.subEndpoint()) && noSelenium.contains(endpoint)) {
                         boolean gat = false;
 
                         for (String g : gatlingStr) {
@@ -315,9 +325,7 @@ public class CoverageController {
                         SELENIUMCOVERAGE++;
                         fullSelenium.add(endpoint);
                         noSelenium.remove(endpoint);
-                        if (gat) {
-                            fullSwagger.add(endpoint);
-                        } else {
+                        if (!gat) {
                             PARTIALCOVERAGE++;
                             partialSwagger.add(endpoint);
                         }
@@ -326,6 +334,7 @@ public class CoverageController {
                 }
             }
         }
+        System.err.println("no selenium: " + noSelenium);
 
         partialDone = true;
         fullSwaggerLock = false;

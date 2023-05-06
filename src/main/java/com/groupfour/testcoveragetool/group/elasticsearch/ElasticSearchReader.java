@@ -66,20 +66,20 @@ public class ElasticSearchReader {
 	 * calls getLogsInTimeRange,
 	 * @param from start time
 	 * @param to end time
-	 * @param field deprecated
-	 * @param regexList deprecated
 	 * @return a HashSet of all the endpoints hit in the time window
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	public HashSet<String> getEndpointsHit(Date from, Date to, String field, List<String> regexList) throws IOException, Exception {
-		List<String> logs = getLogsInTimeRange(from, to, field, regexList);
+	public HashSet<String> getEndpointsHit(Date from, Date to) throws IOException, Exception {
+		List<String> logs = getLogsInTimeRange(from, to);
 		//return getEndpointsFromLogs(logs);
 
 		HashSet<String> l = new HashSet<>(logs);
 
 		CoverageController.setSelenium(EndpointInfo.convertFromStrings(l));
 		System.err.println("hit setter");
+
+		CoverageController.setMavenLock(false);
 
 		return l;
 	}
@@ -88,17 +88,15 @@ public class ElasticSearchReader {
 	 * gets all Endpoints within a specific time range, including duplicates, for all regexes provided
 	 * @param start this system's start time
 	 * @param stop this system's stop time
-	 * @param field
-	 * @param regexList
 	 * @return
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	private List<String> getLogsInTimeRange(Date start, Date stop, String field, List<String> regexList) throws IOException, Exception {
+	private List<String> getLogsInTimeRange(Date start, Date stop) throws IOException, Exception {
 		List<String> logs = new ArrayList<String>();
-		for(String regex:regexList) {
-			logs.addAll(getLogs(start, stop, field, regex));
-		}
+//		for(String regex:regexList) {
+			logs.addAll(getLogs(start, stop));
+//		}
 		
 		return logs;
 	}
@@ -108,14 +106,12 @@ public class ElasticSearchReader {
 	 * gets all logs within a time range for a given regex
 	 * @param start
 	 * @param stop
-	 * @param field
-	 * @param regex
 	 * @return
 	 * @throws IOException
 	 * @throws Exception
 	 */
 	@SuppressWarnings("deprecation")
-	private List<String> getLogs(Date start, Date stop, String field, String regex) throws IOException, Exception {
+	private List<String> getLogs(Date start, Date stop) throws IOException, Exception {
 
 		//fix the timestamps using the delta
 		long startTime = start.toInstant().toEpochMilli();
