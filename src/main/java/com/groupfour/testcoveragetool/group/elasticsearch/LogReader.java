@@ -1,76 +1,239 @@
 package com.groupfour.testcoveragetool.group.elasticsearch;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpHost;
+import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Arrays;
+import javafx.util.Pair;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 
 public class LogReader {
 
-	public static void elasticServiceThing() throws IOException, JSONException {
-		String index = "logstash-2023.02.27-000001";
-		String id = "DJSGm4YBdjksNf-3lgN1";
-		URL url = new URL("http://localhost:9200/" + index + "/_search?pretty=true&q=*.*&size=100");
-		HttpURLConnection con = (HttpURLConnection) url.openConnection();
-		con.setRequestMethod("GET");
+	private static RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.3.122", 9200)));
+	private static SearchRequest request = new SearchRequest("jaeger-span-*"); //match all indices
+	private static SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
-		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		String inputLine;
+	private static final int TIMEDELTASEC = -1;
 
-		StringBuffer response = new StringBuffer();
+	public static void main(String[] args) throws Exception {
 
-		while(((inputLine = in.readLine()) != null)) {
+		//timeQuery();
+		//diffQuery();
+		timeQueryBounds(1683396420626l, 1683396554594l);
 
-			//JSONObject jsonArray = new JSONObject(inputLine);
-			//System.out.println(jsonArray.getString("message"));
-			/*for(int i = 0; i < jsonArray.length(); i++) {
-				JSONObject object = jsonArray.getJSONObject(i);
-				System.out.println(object.getString("message"));
-			}*/
+	}
 
 
-			for(String x : inputLine.split(",")) {
-				if(x.toLowerCase().contains("message") && x.contains("/")){
 
-					String path = x.substring(x.indexOf("/"), x.length() - 1);
 
-					if(x.toLowerCase().contains("get")) {
-						System.out.println("GET " + path) ;
-					}
-					else if(x.toLowerCase().contains("post")) {
-						System.out.println("POST " + path);
-					}
-					else if(x.toLowerCase().contains("put")) {
-						System.out.println("PUT " + path);
-					}
-					else if(x.toLowerCase().contains("delete")) {
-						System.out.println("DELETE " + path);
-					}
-					else if(x.toLowerCase().contains("patch")) {
-						System.out.println("PATCH " + path);
-					}
-					else if(x.toLowerCase().contains("request")) {
-						System.out.println("REQUEST " + path);
-					}
-					//System.out.println(x);
+	public static String shortenURL(String s) throws Exception {
+		String[] parts = s.split("\\s+");
+		String method = parts[0];
+		String url = parts[1].replaceAll(" ", "%20");
+		URI uri = new URI(url);
+		String path = uri.getPath();
+		return method + " " + path;
+	}
+
+
+	public static void timeQuery() throws Exception {
+		long startTime = Instant.now().toEpochMilli();
+		startTime += (TIMEDELTASEC * 1000) ;
+		System.out.println(startTime);
+		Thread.sleep(5000);
+
+		long endTime = Instant.now().toEpochMilli();
+		endTime += (TIMEDELTASEC * 1000);
+		System.out.println(endTime);
+
+
+		List<String> restLogs = queryLogsTime(startTime, endTime);
+
+		for(String s:restLogs) {
+			System.out.println(s);
+		}
+
+
+		//System.out.println("Before: " + before.size());
+		System.out.println("After: " + restLogs.size());
+
+
+		rhlc.close();
+	}
+
+	public static void timeQueryBounds(long startTime, long endTime) throws Exception {
+
+
+		List<String> restLogs = queryLogsTime(startTime, endTime);
+
+		for(String s:restLogs) {
+			System.out.println(s);
+		}
+
+
+		//System.out.println("Before: " + before.size());
+		System.out.println("After: " + restLogs.size());
+
+
+		rhlc.close();
+	}
+
+
+	private static List<String> queryLogsTime(long start, long stop) throws Exception {
+		List<String> restLogs = new ArrayList<String>();
+		QueryBuilder queryBuilder = buildQueryTime(start, stop);
+
+		searchSourceBuilder.query(queryBuilder);
+		//retrieve the maximum number of logs
+		searchSourceBuilder.size(10000);
+		request.source(searchSourceBuilder);
+
+		SearchResponse searchResponse = rhlc.search(request, RequestOptions.DEFAULT); //perform the request
+		SearchHits hits = searchResponse.getHits();
+
+		for (SearchHit hit : hits) {
+			String sourceAsString = hit.getSourceAsString();
+			ObjectMapper objectMapper = new ObjectMapper();
+			Map<String, Object> sourceAsMap = objectMapper.readValue(sourceAsString, new TypeReference<Map<String, Object>>() {});
+			List<Map<String, Object>> tags = (List<Map<String, Object>>) sourceAsMap.get("tags");
+
+			String method = null;
+			String url = null;
+
+			for (Map<String, Object> tag : tags) {
+				String key = (String) tag.get("key");
+				if (key.equals("http.method")) {
+					method = (String) tag.get("value");
+				} else if (key.equals("http.url")) {
+					url = (String) tag.get("value");
+				}
+
+				if (method != null && url != null) {
+					break;
 				}
 			}
 
-
-			response.append(inputLine);
+			if (method != null && url != null) {
+				String methodUrl = method + " " + url;
+				restLogs.add(shortenURL(methodUrl));
+			}
 		}
-		in.close();
-		System.out.println(response.toString());
+
+		return restLogs;
 	}
 
+	private static QueryBuilder buildQueryTime(long startTime, long endTime) {
+		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.method"), ScoreMode.None))
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.url"), ScoreMode.None))
+		.filter(QueryBuilders.rangeQuery("startTimeMillis").gte(startTime).lte(endTime));
+
+		return queryBuilder;
+	}
+
+	public static List<String> diffQuery() throws Exception {
+
+		HashSet<Pair<String, String>> before = queryLogs();
+		System.out.println("Starting");
+		Thread.sleep(10000);
+
+		HashSet<Pair<String, String>> after = queryLogs();
+
+
+		System.out.println("Before: " + before.size());
+		System.out.println("After: " + after.size());
+
+		diff(before, after);
+
+
+
+
+		rhlc.close();
+
+		return null;
+	}
+
+	private static HashSet<Pair<String, String>> queryLogs() throws Exception {
+		HashSet<Pair<String, String>> restLogs = new HashSet<Pair<String, String>>();
+		QueryBuilder queryBuilder = buildQuery();
+
+		searchSourceBuilder.query(queryBuilder);
+		//retrieve the maximum number of logs
+		searchSourceBuilder.size(10000);
+		request.source(searchSourceBuilder);
+
+		SearchResponse searchResponse = rhlc.search(request, RequestOptions.DEFAULT); //perform the request
+		SearchHits hits = searchResponse.getHits();
+
+		for (SearchHit hit : hits) {
+			String sourceAsString = hit.getSourceAsString();
+			String id = hit.getId();
+			ObjectMapper objectMapper = new ObjectMapper();
+			Map<String, Object> sourceAsMap = objectMapper.readValue(sourceAsString, new TypeReference<Map<String, Object>>() {});
+			List<Map<String, Object>> tags = (List<Map<String, Object>>) sourceAsMap.get("tags");
+
+			String method = null;
+			String url = null;
+
+			for (Map<String, Object> tag : tags) {
+				String key = (String) tag.get("key");
+				if (key.equals("http.method")) {
+					method = (String) tag.get("value");
+				} else if (key.equals("http.url")) {
+					url = (String) tag.get("value");
+				}
+
+				if (method != null && url != null) {
+					break;
+				}
+			}
+
+			if (method != null && url != null) {
+				String methodUrl = method + " " + url;
+				restLogs.add(new Pair<>(id, shortenURL(methodUrl)));
+			}
+		}
+
+		return restLogs;
+	}
+
+	private static QueryBuilder buildQuery() {
+		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.method"), ScoreMode.None))
+				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.url"), ScoreMode.None));
+
+		return queryBuilder;
+	}
+
+	private static List<String> diff(HashSet<Pair<String, String>> before, HashSet<Pair<String, String>> after) {
+		List<String> diff = new ArrayList<>();
+		after.removeAll(before);
+		System.out.println("Size: " + after.size());
+
+		for(Pair<String, String> p:after) {
+			diff.add(p.getValue());
+			System.out.println(p.getValue());
+		}
+
+
+		return diff;
+	}
 }

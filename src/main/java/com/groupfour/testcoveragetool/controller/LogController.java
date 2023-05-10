@@ -2,6 +2,9 @@ package com.groupfour.testcoveragetool.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,27 +36,31 @@ public class LogController {
 	private boolean urlFieldLock = true;
 	private boolean regexListLock = true;
 
-	@GetMapping("/endpoints")
-	public List<String> getAllEndpoints(@RequestParam("file") MultipartFile file) throws IOException, ParseException, ZipException {
-		while (this.methodFieldLock || this.urlFieldLock || this.regexListLock);
+	@PostMapping("/endpoints")
+	public void getAllEndpoints(@RequestParam("file") MultipartFile file) throws Exception {
+		System.err.println("hit endpoints 1");
+//		while (this.methodFieldLock || this.urlFieldLock || this.regexListLock);
+		System.err.println("hit endpoints 2");
 
 		this.methodFieldLock = true;
 		this.urlFieldLock = true;
 		this.regexListLock = true;
 
-		HashSet<String> endpointsTested = null;
+		//HashSet<String> endpointsTested = null;
+		File zipped = new File(file.getOriginalFilename());
+		Path path = Paths.get(zipped.getAbsolutePath());
+		Files.write(path, file.getBytes());
 
-		File tempFile = File.createTempFile("temp-", file.getOriginalFilename());
-		file.transferTo(tempFile);
-
-		ArrayList<TimeBounds> timeChunks = SeleniumEndpointEnumerator.seleniumTestRunner(tempFile);
+		ArrayList<TimeBounds> timeChunks = SeleniumEndpointEnumerator.seleniumTestRunner(zipped);
 
 		//return endpointsTested;
 		for(TimeBounds t : timeChunks) {
 			parseLogsForEndpoints(t.getStartTime(), t.getEndTime());
 		}
+
+		System.err.println("hit endpoints 3");
 		
-		return new ArrayList<String>(endpointsTested);
+		//return new ArrayList<String>(endpointsTested);
 	}
 
 	@PostMapping("/methodField")
@@ -93,7 +100,7 @@ public class LogController {
 	}
 	
 	
-	private HashSet<String> parseLogsForEndpoints(Date from, Date to) throws IOException, ParseException {
-		return logReader.getEndpointsHit(from, to, methodField + urlField, regexList);
+	private HashSet<String> parseLogsForEndpoints(Date from, Date to) throws IOException, Exception {
+		return logReader.getEndpointsHit(from, to);
 	}
 }

@@ -1,5 +1,9 @@
 package com.groupfour.testcoveragetool.controller;
 
+import org.checkerframework.checker.units.qual.A;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
 
 public class EndpointInfo {
@@ -7,6 +11,11 @@ public class EndpointInfo {
     private String method;
     private String path;
     private int parameters;
+
+    private static final String GET = "GET ";
+    private static final String POST = "POST ";
+    private static final String PUT = "PUT ";
+    private static final String DELETE = "DELETE ";
 
     private static final char BRACKET = '{';
 
@@ -34,6 +43,25 @@ public class EndpointInfo {
 //        }
         this.path = beg + path;
         this.parameters = parameters;
+    }
+
+    public static ArrayList<EndpointInfo> convertFromStrings(HashSet<String> eps) {
+        ArrayList<EndpointInfo> sel = new ArrayList<>();
+        for (String ep : eps) {
+            if (ep.contains(GET)) {
+                sel.add(new EndpointInfo("GET", ep.substring(GET.length())));
+            } else if (ep.contains(POST)) {
+                sel.add(new EndpointInfo("POST", ep.substring(POST.length())));
+            } else if (ep.contains(DELETE)) {
+                sel.add(new EndpointInfo("DELETE", ep.substring(DELETE.length())));
+            } else if (ep.contains(PUT)) {
+                sel.add(new EndpointInfo("PUT", ep.substring(PUT.length())));
+            }
+        }
+
+//        CoverageController.setSelenium(sel);
+
+        return sel;
     }
 
     public String getMethod() {
