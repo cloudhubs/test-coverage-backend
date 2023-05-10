@@ -30,13 +30,15 @@ public class ElasticSearchReader {
 
 	private boolean debugMode;
 	private int timeDeltaSec;
+	private static final String ELASTICHOST = "192.168.3.122";
+	private static final int ELASTICPORT = 9200;
+	private static final String INDEXNAME = "jaeger-span-*";
 	
 	@SuppressWarnings("deprecation")
-	private RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.3.122", 9200)));
-	private SearchRequest request = new SearchRequest("jaeger-span-*"); //match all indices
+	private RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost(ELASTICHOST, ELASTICPORT)));
+	private SearchRequest request = new SearchRequest(INDEXNAME); //match all indices
 	private SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-	
-	//public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
 
 	public void ElasticSearch(boolean debug, int timeDeltaSeconds) {
 		ElasticSearch();
@@ -47,7 +49,6 @@ public class ElasticSearchReader {
 	public void ElasticSearch() {
 		debugMode = false;
 		timeDeltaSec = 0;
-		//dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); //set up for central timezone
 	}
 
 	public boolean isDebug() {
@@ -72,7 +73,6 @@ public class ElasticSearchReader {
 	 */
 	public HashSet<String> getEndpointsHit(Date from, Date to) throws IOException, Exception {
 		List<String> logs = getLogsInTimeRange(from, to);
-		//return getEndpointsFromLogs(logs);
 
 		HashSet<String> l = new HashSet<>(logs);
 
@@ -94,9 +94,7 @@ public class ElasticSearchReader {
 	 */
 	private List<String> getLogsInTimeRange(Date start, Date stop) throws IOException, Exception {
 		List<String> logs = new ArrayList<String>();
-//		for(String regex:regexList) {
-			logs.addAll(getLogs(start, stop));
-//		}
+		logs.addAll(getLogs(start, stop));
 		
 		return logs;
 	}
@@ -198,65 +196,5 @@ public class ElasticSearchReader {
 		String path = uri.getPath();
 		return method + " " + path;
 	}
-
-	/*
-	//Unused?
-	public HashSet<String> getEndpointsFromLogs(List<String> logs) {
-		HashSet<String> endpoints = new HashSet<String>();
-
-		for(String log:logs) {
-			String endpoint = extractEndpoint(log);
-
-			if(isDebug()) {
-				System.out.println(endpoint);
-			}
-
-			endpoints.add(endpoint);
-		}
-
-		return endpoints;
-	}
-
-	public static String extractEndpoint(String str) {
-		Objects.requireNonNull(str, "String is null");
-		String endpoint = "";
-		endpoint += findRequestType(str);
-		endpoint += " ";
-		endpoint += findMapping(str);
-
-		return endpoint;
-	}
-
-	public static String findRequestType(String log) {
-		for(APIType request: APIType.values()) {
-			if(log.contains(request.toString())) {
-				return request.toString();
-			}
-		}
-
-		return null;
-	}
-
-	public static String findMapping(String log) {
-		Objects.requireNonNull(log, "Log is null");
-		if(log.isEmpty()) {
-			throw new IllegalArgumentException("Log is empty");
-		}
-		String requestType = findRequestType(log);
-
-		int start = log.indexOf("/", log.indexOf(requestType));
-		int stop = log.indexOf(" ", start);
-
-		if(stop == -1 && start != -1) {
-			stop = log.length() - 1;
-		}
-
-		if(start == -1 || stop == -1) {
-			throw new IllegalArgumentException("Mapping not formatted properly");
-		}
-
-		return log.substring(start, stop);
-	}
-	*/
 
 }
