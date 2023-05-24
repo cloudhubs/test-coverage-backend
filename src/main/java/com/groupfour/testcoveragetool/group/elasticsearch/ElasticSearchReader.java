@@ -1,10 +1,15 @@
 package com.groupfour.testcoveragetool.group.elasticsearch;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -31,8 +36,8 @@ public class ElasticSearchReader {
 	private boolean debugMode;
 	private int timeDeltaSec;
 	private static final String ELASTICHOST = "192.168.3.122";
-	private static final int ELASTICPORT = 9200;
-	private static final String INDEXNAME = "jaeger-span-*";
+	private static final int ELASTICPORT = 30092;
+	private static final String INDEXNAME = "sw_endpoint_relation_server_side*";
 	
 	@SuppressWarnings("deprecation")
 	private RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost(ELASTICHOST, ELASTICPORT)));
@@ -76,7 +81,7 @@ public class ElasticSearchReader {
 
 		HashSet<String> l = new HashSet<>(logs);
 
-		CoverageController.setSelenium(EndpointInfo.convertFromStrings(l));
+		CoverageController.setSelenium(EndpointInfo.convertFromStrings(formatLogs(l)));
 		System.err.println("hit setter");
 
 		CoverageController.setMavenLock(false);
@@ -112,13 +117,12 @@ public class ElasticSearchReader {
 	private List<String> getLogs(Date start, Date stop) throws IOException, Exception {
 
 		//fix the timestamps using the delta
-		long startTime = start.toInstant().toEpochMilli();
-		startTime += (timeDeltaSec * 1000) ;
 
+		LocalDateTime startLDT = LocalDateTime.ofInstant(start.toInstant(), ZoneId.of("UTC")).minusMinutes(1);
+		LocalDateTime stopLDT = LocalDateTime.ofInstant(stop.toInstant(), ZoneId.of("UTC")).plusMinutes(1);
 
-		long endTime = stop.toInstant().toEpochMilli();
-		endTime += (timeDeltaSec * 1000);
-
+		long startTime = dateToSWLogTime(startLDT);
+		long endTime = dateToSWLogTime(stopLDT);
 
 		List<String> restLogs = queryLogs(startTime, endTime);
 
@@ -134,8 +138,19 @@ public class ElasticSearchReader {
 		return restLogs;
 	}
 
+	public static long dateToSWLogTime(LocalDateTime d) {
+		String timeStr = "";
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuuMMddHHmm", Locale.ENGLISH)
+				.withZone(ZoneOffset.UTC);
+		var d2 = LocalDateTime.of(2023,05,05,12,10,10);
+		var str2 = d2.format(formatter);
+		var str = d.format(formatter);
 
-	private  List<String> queryLogs(long start, long stop) throws Exception {
+
+		return Long.valueOf(str);
+	}
+
+	private List<String> queryLogs(long start, long stop) throws Exception {
 		List<String> restLogs = new ArrayList<String>();
 		QueryBuilder queryBuilder = buildQuery(start, stop);
 
@@ -151,50 +166,87 @@ public class ElasticSearchReader {
 			String sourceAsString = hit.getSourceAsString();
 			ObjectMapper objectMapper = new ObjectMapper();
 			Map<String, Object> sourceAsMap = objectMapper.readValue(sourceAsString, new TypeReference<Map<String, Object>>() {});
-			List<Map<String, Object>> tags = (List<Map<String, Object>>) sourceAsMap.get("tags");
+			String srcEndpoint = (String) sourceAsMap.get("source_endpoint");
+			String destEndpoint = (String) sourceAsMap.get("dest_endpoint");
 
-			String method = null;
-			String url = null;
-
-			for (Map<String, Object> tag : tags) {
-				String key = (String) tag.get("key");
-				if (key.equals("http.method")) {
-					method = (String) tag.get("value");
-				} else if (key.equals("http.url")) {
-					url = (String) tag.get("value");
-				}
-
-				if (method != null && url != null) {
-					break;
-				}
-			}
-
-			if (method != null && url != null) {
-				String methodUrl = method + " " + url;
-				restLogs.add(shortenURL(methodUrl));
-			}
+			restLogs.add(decode(srcEndpoint));
+			restLogs.add(decode(destEndpoint));
 		}
 
 		return restLogs;
 	}
 
-	private QueryBuilder buildQuery(long startTime, long endTime) {
-		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
-				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.method"), ScoreMode.None))
-				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.url"), ScoreMode.None))
-				.filter(QueryBuilders.rangeQuery("startTimeMillis").gte(startTime).lte(endTime));
+	private String decode(String str) throws UnsupportedEncodingException {
+		List<String> decodedMessages = new ArrayList<>();
+		List<String> split = splitString(str);
+		String decodedValue = "";
 
+		//decode here
+		for(String s:split) {
+			if(!isInvalid(s)) {
+				byte[] decodedBytes = Base64.getDecoder().decode(s);
+				decodedMessages.add(new String(decodedBytes, "UTF-8"));
+			}
+		}
+
+
+		String fullEndpoint = "";
+		String serviceName = "";
+
+		for(String msg:decodedMessages) {
+			if(isRequest(msg)) {
+				fullEndpoint = msg;
+			}
+			else if(msg.startsWith("ts-")) {
+				serviceName = msg;
+			}
+		}
+
+		if(isDebug()) {
+			System.out.println(serviceName + "#" + fullEndpoint);
+		}
+
+
+		return fullEndpoint;
+	}
+
+	private static List<String> splitString(String str) {
+		String[] parts = str.split("(\\.\\d+[_-]?|[-_])");
+		List<String> splitParts = new ArrayList<>();
+		for(String s:parts) {
+			splitParts.add(s);
+		}
+
+
+		return splitParts;
+	}
+
+	private static Boolean isInvalid(String s) {
+		return ((s.equals(".1_")) || (s.equals(".1-")) || (s.equals(".1")) || (s.equals(".0_")) || (s.equals(".0-")) || (s.equals(".0")));
+	}
+
+
+	private static Boolean isRequest(String s) {
+		return s.contains("GET") || s.contains("POST") || s.contains("PUT") || s.contains("DELETE");
+	}
+
+
+
+	private QueryBuilder buildQuery(long startTime, long endTime) {
+		QueryBuilder queryBuilder = QueryBuilders.boolQuery().filter(QueryBuilders.rangeQuery("time_bucket").gte(startTime).lte(endTime));
 		return queryBuilder;
 	}
 
 
-	private String shortenURL(String s) throws Exception {
-		String[] parts = s.split("\\s+");
-		String method = parts[0];
-		String url = parts[1].replaceAll(" ", "%20");
-		URI uri = new URI(url);
-		String path = uri.getPath();
-		return method + " " + path;
+	private HashSet<String> formatLogs(HashSet<String> logs) {
+		HashSet<String> formatted = new HashSet<>();
+
+		for(String s:logs) {
+			formatted.add(s.replace(":", " "));
+		}
+
+		return formatted;
 	}
+
 
 }

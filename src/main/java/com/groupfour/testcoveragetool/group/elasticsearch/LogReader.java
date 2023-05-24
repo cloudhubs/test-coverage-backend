@@ -17,18 +17,18 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import javafx.util.Pair;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
 
 
 public class LogReader {
 
-	private static RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.3.122", 9200)));
-	private static SearchRequest request = new SearchRequest("jaeger-span-*"); //match all indices
+	private static RestHighLevelClient rhlc = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.3.122", 30092)));
+	private static SearchRequest request = new SearchRequest("sw_endpoint_relation_server_side*"); //match all indices
 	private static SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
 	private static final int TIMEDELTASEC = -1;
@@ -37,46 +37,41 @@ public class LogReader {
 
 		//timeQuery();
 		//diffQuery();
-		timeQueryBounds(1683396420626l, 1683396554594l);
+
+		LocalDateTime startLDT = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("UTC")).minusMinutes(1);
+		LocalDateTime stopLDT = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("UTC")).plusMinutes(1);
+
+		System.out.println(dateToSWLogTime(startLDT));
+		System.out.println(dateToSWLogTime(stopLDT));
+
+		timeQueryBounds(202305242000l, 202305242156l);
 
 	}
 
+	public static long dateToSWLogTime(LocalDateTime d) {
+		String timeStr = "";
 
 
+		int year = d.getYear();
+		int month = d.getMonthValue();
+		//month++; //january is 0 lol
+		int day = d.getDayOfMonth();
+		int hours = d.getHour();
+		int minute = d.getMinute();
 
-	public static String shortenURL(String s) throws Exception {
-		String[] parts = s.split("\\s+");
-		String method = parts[0];
-		String url = parts[1].replaceAll(" ", "%20");
-		URI uri = new URI(url);
-		String path = uri.getPath();
-		return method + " " + path;
-	}
-
-
-	public static void timeQuery() throws Exception {
-		long startTime = Instant.now().toEpochMilli();
-		startTime += (TIMEDELTASEC * 1000) ;
-		System.out.println(startTime);
-		Thread.sleep(5000);
-
-		long endTime = Instant.now().toEpochMilli();
-		endTime += (TIMEDELTASEC * 1000);
-		System.out.println(endTime);
-
-
-		List<String> restLogs = queryLogsTime(startTime, endTime);
-
-		for(String s:restLogs) {
-			System.out.println(s);
+		timeStr += year;
+		timeStr += month;
+		timeStr += day;
+		if(hours <= 10) {
+			timeStr += 0;
 		}
+		timeStr += hours;
+		if(minute <= 10) {
+			timeStr += "0";
+		}
+		timeStr += minute;
 
-
-		//System.out.println("Before: " + before.size());
-		System.out.println("After: " + restLogs.size());
-
-
-		rhlc.close();
+		return Long.valueOf(timeStr);
 	}
 
 	public static void timeQueryBounds(long startTime, long endTime) throws Exception {
@@ -84,13 +79,15 @@ public class LogReader {
 
 		List<String> restLogs = queryLogsTime(startTime, endTime);
 
-		for(String s:restLogs) {
+		Set<String> restSet = new HashSet<>();
+		restSet.addAll(restLogs);
+
+		System.out.println(restSet.size());
+
+		for(String s:restSet) {
 			System.out.println(s);
 		}
 
-
-		//System.out.println("Before: " + before.size());
-		System.out.println("After: " + restLogs.size());
 
 
 		rhlc.close();
@@ -113,127 +110,75 @@ public class LogReader {
 			String sourceAsString = hit.getSourceAsString();
 			ObjectMapper objectMapper = new ObjectMapper();
 			Map<String, Object> sourceAsMap = objectMapper.readValue(sourceAsString, new TypeReference<Map<String, Object>>() {});
-			List<Map<String, Object>> tags = (List<Map<String, Object>>) sourceAsMap.get("tags");
+			String srcEndpoint = (String) sourceAsMap.get("source_endpoint");
+			String destEndpoint = (String) sourceAsMap.get("dest_endpoint");
 
-			String method = null;
-			String url = null;
-
-			for (Map<String, Object> tag : tags) {
-				String key = (String) tag.get("key");
-				if (key.equals("http.method")) {
-					method = (String) tag.get("value");
-				} else if (key.equals("http.url")) {
-					url = (String) tag.get("value");
-				}
-
-				if (method != null && url != null) {
-					break;
-				}
-			}
-
-			if (method != null && url != null) {
-				String methodUrl = method + " " + url;
-				restLogs.add(shortenURL(methodUrl));
-			}
+			restLogs.add(decode(srcEndpoint));
+			restLogs.add(decode(destEndpoint));
 		}
 
 		return restLogs;
 	}
 
+	private static String decode(String str) throws UnsupportedEncodingException {
+		List<String> decodedMessages = new ArrayList<>();
+		List<String> split = splitString(str);
+		String decodedValue = "";
+
+		//decode here
+		for(String s:split) {
+			if(!isInvalid(s)) {
+				byte[] decodedBytes = Base64.getDecoder().decode(s);
+				decodedMessages.add(new String(decodedBytes, "UTF-8"));
+			}
+		}
+
+
+		String fullEndpoint = "";
+		String serviceName = "";
+
+		for(String msg:decodedMessages) {
+			if(isRequest(msg)) {
+				fullEndpoint = msg;
+			}
+			else if(msg.startsWith("ts-")) {
+				serviceName = msg;
+			}
+		}
+
+		return serviceName + "#" + fullEndpoint;
+	}
+
+	private static List<String> splitString(String str) {
+		String[] parts = str.split("(\\.\\d+[_-]?|[-_])");
+		List<String> splitParts = new ArrayList<>();
+		for(String s:parts) {
+			splitParts.add(s);
+		}
+
+
+		return splitParts;
+	}
+
+	private static Boolean isInvalid(String s) {
+		return ((s.equals(".1_")) || (s.equals(".1-")) || (s.equals(".1")) || (s.equals(".0_")) || (s.equals(".0-")) || (s.equals(".0")));
+	}
+
+
+	private static Boolean isRequest(String s) {
+		return s.contains("GET") || s.contains("POST") || s.contains("PUT") || s.contains("DELETE");
+	}
+
 	private static QueryBuilder buildQueryTime(long startTime, long endTime) {
+		/*
 		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
 				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.method"), ScoreMode.None))
 				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.url"), ScoreMode.None))
 		.filter(QueryBuilders.rangeQuery("startTimeMillis").gte(startTime).lte(endTime));
+		 */
+
+		QueryBuilder queryBuilder = QueryBuilders.boolQuery().filter(QueryBuilders.rangeQuery("time_bucket").gte(startTime).lte(endTime));
 
 		return queryBuilder;
-	}
-
-	public static List<String> diffQuery() throws Exception {
-
-		HashSet<Pair<String, String>> before = queryLogs();
-		System.out.println("Starting");
-		Thread.sleep(10000);
-
-		HashSet<Pair<String, String>> after = queryLogs();
-
-
-		System.out.println("Before: " + before.size());
-		System.out.println("After: " + after.size());
-
-		diff(before, after);
-
-
-
-
-		rhlc.close();
-
-		return null;
-	}
-
-	private static HashSet<Pair<String, String>> queryLogs() throws Exception {
-		HashSet<Pair<String, String>> restLogs = new HashSet<Pair<String, String>>();
-		QueryBuilder queryBuilder = buildQuery();
-
-		searchSourceBuilder.query(queryBuilder);
-		//retrieve the maximum number of logs
-		searchSourceBuilder.size(10000);
-		request.source(searchSourceBuilder);
-
-		SearchResponse searchResponse = rhlc.search(request, RequestOptions.DEFAULT); //perform the request
-		SearchHits hits = searchResponse.getHits();
-
-		for (SearchHit hit : hits) {
-			String sourceAsString = hit.getSourceAsString();
-			String id = hit.getId();
-			ObjectMapper objectMapper = new ObjectMapper();
-			Map<String, Object> sourceAsMap = objectMapper.readValue(sourceAsString, new TypeReference<Map<String, Object>>() {});
-			List<Map<String, Object>> tags = (List<Map<String, Object>>) sourceAsMap.get("tags");
-
-			String method = null;
-			String url = null;
-
-			for (Map<String, Object> tag : tags) {
-				String key = (String) tag.get("key");
-				if (key.equals("http.method")) {
-					method = (String) tag.get("value");
-				} else if (key.equals("http.url")) {
-					url = (String) tag.get("value");
-				}
-
-				if (method != null && url != null) {
-					break;
-				}
-			}
-
-			if (method != null && url != null) {
-				String methodUrl = method + " " + url;
-				restLogs.add(new Pair<>(id, shortenURL(methodUrl)));
-			}
-		}
-
-		return restLogs;
-	}
-
-	private static QueryBuilder buildQuery() {
-		QueryBuilder queryBuilder = QueryBuilders.boolQuery()
-				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.method"), ScoreMode.None))
-				.must(QueryBuilders.nestedQuery("tags", QueryBuilders.termQuery("tags.key", "http.url"), ScoreMode.None));
-
-		return queryBuilder;
-	}
-
-	private static List<String> diff(HashSet<Pair<String, String>> before, HashSet<Pair<String, String>> after) {
-		List<String> diff = new ArrayList<>();
-		after.removeAll(before);
-		System.out.println("Size: " + after.size());
-
-		for(Pair<String, String> p:after) {
-			diff.add(p.getValue());
-			System.out.println(p.getValue());
-		}
-
-
-		return diff;
 	}
 }

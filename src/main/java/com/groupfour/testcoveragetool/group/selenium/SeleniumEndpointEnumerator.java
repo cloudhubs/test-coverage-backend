@@ -47,6 +47,8 @@ public class SeleniumEndpointEnumerator {
     public static final String USER_TESTS = "SelTests";
     public static final int SUBIDX = 2;
 
+    public static  List<String> TESTNAMES;
+
     public static Set<String> validEndpoints = new HashSet<String>(Arrays.asList("GetMapping",
                                                                                 "PostMapping",
                                                                                 "PutMapping",
@@ -256,6 +258,8 @@ public class SeleniumEndpointEnumerator {
         request.setGoals(Collections.singletonList("test -Dmaven.test.skip=false -B -Dtest=com.example.**"));
 //        request.setWaitForCompletion(true);
 
+
+
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(new File(System.getProperty("M2_HOME")));
 
@@ -269,6 +273,8 @@ public class SeleniumEndpointEnumerator {
             e.printStackTrace();
         }
     }
+
+
 
     public static ArrayList<File> getTestFiles(File projectFile) throws IOException {
         ArrayList<File> toReturn = new ArrayList<File>();
